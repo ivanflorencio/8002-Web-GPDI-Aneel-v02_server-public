@@ -55,7 +55,7 @@ namespace PeD.Controllers
         {
             var files = Request.Form.Files.ToList();
 
-            if (!files.All(file => AllowedFiles.Any(ext => file.FileName.EndsWith($".{ext}"))))
+            if (!files.All(file => AllowedFiles.Any(ext => file.FileName.ToUpper().EndsWith($".{ext.ToUpper()}"))))
             {
                 throw new FileNotAllowedException();
             }
@@ -72,7 +72,7 @@ namespace PeD.Controllers
             }
 
 
-            if (!files.All(file => AllowedFiles.Any(ext => file.FileName.EndsWith($".{ext}"))))
+            if (!files.All(file => AllowedFiles.Any(ext => file.FileName.ToUpper().EndsWith($".{ext.ToUpper()}"))))
             {
                 throw new FileNotAllowedException();
             }
