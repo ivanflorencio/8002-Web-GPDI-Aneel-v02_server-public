@@ -178,7 +178,7 @@ namespace PeD.Services
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             return await SendGridService.Send(email,
-                "Você foi convidado para participar do Gestor PDI da Taesa como Fornecedor Cadastrado",
+                "Você foi convidado para participar do Gestor PDI da Norte Energia como Fornecedor Cadastrado",
                 "Email/FornecedorAccount",
                 new FornecedorAccount()
                 {

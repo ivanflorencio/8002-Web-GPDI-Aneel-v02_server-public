@@ -70,7 +70,7 @@ namespace PeD.Services
             dadosUser.DataCadastro = DateTime.Now;
             await CreateUser(dadosUser, dadosUser.Role);
             return await accessManager.SendRecoverAccountEmail(dadosUser.Email, true,
-                "Seja bem-vindo ao Gerenciador PDI Taesa");
+                "Seja bem-vindo ao Gerenciador PDI Norte Energia");
         }
 
         public Resultado Atualizar(ApplicationUser dadosUser)
