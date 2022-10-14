@@ -87,6 +87,6 @@ namespace PeD.Controllers
             {
                 return Problem("Não foi possivel enviar email", statusCode: StatusCodes.Status500InternalServerError);
             }
-            
+        }
     }
 }
