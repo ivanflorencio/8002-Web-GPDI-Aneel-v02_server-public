@@ -46,9 +46,9 @@ namespace PeD.Core.Requests.Projetos
             RuleFor(r => r.Beneficiado).NotEmpty();
             RuleFor(r => r.CnpjBeneficiado).NotEmpty();
             RuleFor(r => r.CategoriaContabilId).NotNull();
-            RuleFor(r => r.EquipaLaboratorioExistente).NotEmpty();
-            RuleFor(r => r.EquipaLaboratorioNovo).NotEmpty();
-            RuleFor(r => r.IsNacional).NotEmpty();
+            RuleFor(r => r.EquipaLaboratorioExistente).NotNull();
+            RuleFor(r => r.EquipaLaboratorioNovo).NotNull();
+            RuleFor(r => r.IsNacional).NotNull();
             RuleFor(r => r.FuncaoEtapa).NotEmpty();
             RuleFor(r => r.EspecificaoTecnica).NotEmpty();
         }

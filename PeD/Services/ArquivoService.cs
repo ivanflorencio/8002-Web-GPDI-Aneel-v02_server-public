@@ -81,7 +81,7 @@ namespace PeD.Services
             return folder;
         }
 
-        public async Task<List<FileUpload>> SaveFiles(List<IFormFile> files, string userId = "")
+        public async Task<List<FileUpload>> SaveFiles(List<IFormFile> files, string userId = null)
         {
             var arquivos = new List<FileUpload>();
             foreach (var file in files)
