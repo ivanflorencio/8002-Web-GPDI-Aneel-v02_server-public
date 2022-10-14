@@ -595,7 +595,7 @@ namespace PeD.Services.Captacoes
                 {
                     await _sendGridService
                         .Send(proposta.Responsavel.Email,
-                            "Você foi convidado para participar de um novo projeto para a área de PDI da Taesa",
+                            "Você foi convidado para participar de um novo projeto para a área de PDI da Norte Energia",
                             "Email/Captacao/ConviteFornecedor",
                             convite);
                 }

@@ -80,13 +80,13 @@ namespace PeD.Controllers
         {
             try
             {
-                await accessManager.NovaSenha(user);
+                await accessManager.NovaSenha(user);                
                 return Ok();
             }
             catch (Exception)
             {
                 return Problem("Não foi possivel enviar email", statusCode: StatusCodes.Status500InternalServerError);
             }
-        }
+            
     }
 }

@@ -141,17 +141,17 @@ namespace PeD.Services
         {
             if (string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.NewPassword))
             {
-                return false;
+                throw new Exception();
             }
 
             var applicationUser = _userManager.Users.Where(u => u.Email == user.Email).FirstOrDefault();
 
-            if (applicationUser == null) return false;
+            if (applicationUser == null) throw new Exception();
 
             var token = Encoding.ASCII.GetString(Convert.FromBase64String(user.ResetToken));
             var result = await _userManager.ResetPasswordAsync(applicationUser, token, user.NewPassword);
 
-            if (result.Errors.Count() > 0) return false;
+            if (result.Errors.Count() > 0) throw new Exception();
 
             return true;
         }
