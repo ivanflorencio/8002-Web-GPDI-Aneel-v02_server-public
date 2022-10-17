@@ -446,7 +446,7 @@ namespace PeD.Services.Captacoes
             var expiradas = Filter(q =>
                     q.Include(c => c.Propostas)
                         .ThenInclude(p => p.Contrato)
-                        .Where(c => c.Status == Captacao.CaptacaoStatus.Fornecedor && c.Termino < DateTime.Today))
+                        .Where(c => c.Status == Captacao.CaptacaoStatus.Fornecedor && c.Termino < DateTime.Now))
                 .ToList();
             if (expiradas.Count() == 0)
                 return;

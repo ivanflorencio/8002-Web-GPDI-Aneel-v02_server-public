@@ -34,7 +34,7 @@ namespace PeD.Core.Validators
             RuleFor(p => p.BeneficioInstitucional).NotEmpty()
                 .WithMessage("Benefícios à Instituição de Ensino/Pesquisa ou Empresa parceira não informado");
             RuleFor(p => p.BeneficioSociedade).NotEmpty().WithMessage("Benefícios à Sociedade não informado");
-            RuleFor(p => p.BeneficioTaesa).NotEmpty().WithMessage("Benefícios à Taesa não informado");
+            RuleFor(p => p.BeneficioTaesa).NotEmpty().WithMessage("Benefícios à Norte Energia não informado");
             RuleFor(p => p.BeneficioSetorEletrico).NotEmpty().WithMessage("Benefícios ao Seto Eletrico não informado");
             RuleFor(p => p.Contrapartidas).NotEmpty().WithMessage("Contrapartidas não informado");
             RuleFor(p => p.ExperienciaPrevia).NotEmpty().WithMessage("Experiência Prévia não informado");

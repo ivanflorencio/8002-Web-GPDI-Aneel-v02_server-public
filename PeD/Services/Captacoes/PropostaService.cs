@@ -21,12 +21,20 @@ namespace PeD.Services.Captacoes
     public class PropostaService : BaseService<Proposta>
     {
         private DbSet<Proposta> _captacaoPropostas;
+        private DbSet<RecursoHumano> _recursoHumano;
+        private DbSet<RecursoMaterial> _recursoMaterial;
+        private DbSet<Risco> _risco;
+        private DbSet<Escopo> _escopo;
+        private DbSet<AlocacaoRh> _recursoHumanoAlocacao;
+        private DbSet<AlocacaoRm> _recursoMaterialAlocacao;
+        private DbSet<Meta> _metas;
+        private DbSet<PlanoTrabalho> _planoTrabalho;
         private IMapper _mapper;
         private ILogger<PropostaService> _logger;
         private IViewRenderService renderService;
         private GestorDbContext context;
         private SendGridService _sendGridService;
-        private UserService _userService;
+        private UserService _userService;        
         private PdfService _pdfService;
 
         public PropostaService(IRepository<Proposta> repository, GestorDbContext context, IMapper mapper,
@@ -42,6 +50,14 @@ namespace PeD.Services.Captacoes
             _logger = logger;
             _pdfService = pdfService;
             _captacaoPropostas = context.Set<Proposta>();
+            _recursoHumano = context.Set<RecursoHumano>();
+            _recursoMaterial = context.Set<RecursoMaterial>();
+            _risco = context.Set<Risco>();
+            _escopo = context.Set<Escopo>();
+            _metas = context.Set<Meta>();
+            _planoTrabalho = context.Set<PlanoTrabalho>();
+            _recursoHumanoAlocacao = context.Set<AlocacaoRh>();
+            _recursoMaterialAlocacao = context.Set<AlocacaoRm>();
         }
 
         #region Lists
@@ -105,7 +121,7 @@ namespace PeD.Services.Captacoes
 
         public Proposta GetPropostaFull(int id)
         {
-            return _captacaoPropostas
+            var proposta = _captacaoPropostas
                 .AsNoTracking()
                 //Captacao
                 .Include(p => p.Captacao).ThenInclude(c => c.Tema)
@@ -117,20 +133,21 @@ namespace PeD.Services.Captacoes
                 .Include("Produtos.ProdutoTipo")
                 .Include("Produtos.FaseCadeia")
                 .Include("Produtos.TipoDetalhado")
-                // RH
-                .Include(p => p.RecursosHumanos)
-                .Include(p => p.RecursosHumanosAlocacoes)
-                .ThenInclude(a => a.HorasMeses)
-                // RM
-                .Include(p => p.RecursosMateriais)
-                .Include(p => p.RecursosMateriaisAlocacoes)
-                .Include(p => p.Empresas)
+
                 .Include(p => p.Escopo)
-                .Include(p => p.Fornecedor)
-                .Include(p => p.Metas)
                 .Include(p => p.PlanoTrabalho)
-                .Include(p => p.Riscos)
+                .Include(p => p.Fornecedor) 
+
                 .FirstOrDefault(p => p.Id == id);
+
+                proposta.Riscos = _risco.Where(r => r.PropostaId == id).ToList();
+                proposta.Metas = _metas.Where(m => m.PropostaId == id).ToList();                
+                proposta.RecursosHumanos = _recursoHumano.Where(r => r.PropostaId == id).ToList();
+                proposta.RecursosHumanosAlocacoes = _recursoHumanoAlocacao.Where(r => r.PropostaId == id).ToList();
+                proposta.RecursosMateriais = _recursoMaterial.Where(r => r.PropostaId == id).ToList();
+                proposta.RecursosMateriaisAlocacoes = _recursoMaterialAlocacao.Where(r => r.PropostaId == id).ToList();
+
+                return proposta;
         }
 
         public Proposta GetPropostaPorResponsavel(int captacaoId, string userId)
@@ -370,6 +387,7 @@ namespace PeD.Services.Captacoes
                 .FirstOrDefault(p => p.Id == propostaId);
             if (proposta != null)
             {
+                proposta.Relatorio = null; //TODO: Remove it
                 if (proposta.Relatorio == null || proposta.Relatorio.DataAlteracao < proposta.DataAlteracao)
                 {
                     return UpdateRelatorio(propostaId);
