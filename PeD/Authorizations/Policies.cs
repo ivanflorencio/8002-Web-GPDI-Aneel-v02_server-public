@@ -5,7 +5,7 @@ namespace PeD.Authorizations
         public const string IsAdmin = "IsAdmin";
         public const string IsUserPeD = "IsUserPed";
         public const string IsColaborador = "IsColaborador";
-        public const string IsUserTaesa = "IsUserTaesa";
+        public const string IsUserNorteEnergia = "IsUserNorteEnergia";
         public const string IsSuprimento = "IsSuprimento";
         public const string IsFornecedor = "IsFornecedor";
     }

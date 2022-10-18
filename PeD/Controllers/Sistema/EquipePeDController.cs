@@ -18,7 +18,7 @@ namespace PeD.Controllers.Sistema
             this.sistemaService = sistemaService;
         }
 
-        [Authorize(Policy = Policies.IsUserTaesa)]
+        [Authorize(Policy = Policies.IsUserNorteEnergia)]
         [HttpGet]
         public object GetEquipePeD()
         {

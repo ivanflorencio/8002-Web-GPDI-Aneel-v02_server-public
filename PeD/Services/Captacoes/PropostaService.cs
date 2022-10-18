@@ -387,7 +387,6 @@ namespace PeD.Services.Captacoes
                 .FirstOrDefault(p => p.Id == propostaId);
             if (proposta != null)
             {
-                proposta.Relatorio = null; //TODO: Remove it
                 if (proposta.Relatorio == null || proposta.Relatorio.DataAlteracao < proposta.DataAlteracao)
                 {
                     return UpdateRelatorio(propostaId);

@@ -125,7 +125,7 @@ namespace PeD.Controllers.Captacoes
         }
 
 
-        [Authorize(Policy = Policies.IsUserTaesa)]
+        [Authorize(Policy = Policies.IsUserNorteEnergia)]
         [HttpGet("{id}")]
         public ActionResult<CaptacaoDetalhesDto> GetCaptacao(int id)
         {
@@ -149,7 +149,7 @@ namespace PeD.Controllers.Captacoes
             return Ok(detalhes);
         }
 
-        [Authorize(Policy = Policies.IsUserTaesa)]
+        [Authorize(Policy = Policies.IsUserNorteEnergia)]
         [HttpPost("NovaCaptacao")]
         public async Task<ActionResult> NovaCaptacao(NovaCaptacaoRequest request,
             [FromServices] GestorDbContext context,

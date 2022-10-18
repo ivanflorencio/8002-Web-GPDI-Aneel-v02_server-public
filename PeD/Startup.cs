@@ -369,7 +369,7 @@ namespace PeD
             {
                 services.AddDbContext<GestorDbContext>(options =>
                     {
-                        options.UseSqlServer(connectionString, sqlServerOptions => sqlServerOptions.CommandTimeout(300));
+                        options.UseSqlServer(connectionString, sqlServerOptions => sqlServerOptions.CommandTimeout(120));
                         //options.EnableSensitiveDataLogging();
                     }
                 );

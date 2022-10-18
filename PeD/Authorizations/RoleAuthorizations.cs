@@ -11,7 +11,7 @@ namespace PeD.Authorizations
             {
                 options.AddPolicy(Policies.IsAdmin, policy => policy.RequireRole(Roles.Administrador));
                 options.AddPolicy(Policies.IsUserPeD, policy => policy.RequireRole(Roles.Administrador, Roles.User));
-                options.AddPolicy(Policies.IsUserTaesa,
+                options.AddPolicy(Policies.IsUserNorteEnergia,
                     policy => policy.RequireRole(Roles.Administrador, Roles.User, Roles.Suprimento));
                 options.AddPolicy(Policies.IsColaborador,
                     policy => policy.RequireRole(Roles.Administrador, Roles.User, Roles.Suprimento, Roles.Colaborador));
