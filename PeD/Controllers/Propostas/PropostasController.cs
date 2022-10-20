@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PeD.Authorizations;
 using PeD.Core.ApiModels.Propostas;
+using PeD.Core.ApiModels.Cronograma;
 using PeD.Core.Models;
 using PeD.Core.Models.Captacoes;
 using PeD.Core.Models.Fornecedores;
@@ -17,6 +18,7 @@ using PeD.Core.Requests.Proposta;
 using PeD.Data;
 using PeD.Services;
 using PeD.Services.Captacoes;
+using PeD.Services.Cronograma;
 using Swashbuckle.AspNetCore.Annotations;
 using TaesaCore.Controllers;
 using TaesaCore.Interfaces;
@@ -31,14 +33,16 @@ namespace PeD.Controllers.Propostas
     public class PropostasController : ControllerServiceBase<Proposta>
     {
         private new PropostaService Service;
+        private CronogramaService ServiceCronograma;
         private GestorDbContext _context;
         public readonly IAuthorizationService AuthorizationService;
 
-        public PropostasController(PropostaService service, IMapper mapper, IAuthorizationService authorizationService,
+        public PropostasController(PropostaService service, CronogramaService serviceCronograma, IMapper mapper, IAuthorizationService authorizationService,
             GestorDbContext context)
             : base(service, mapper)
         {
             Service = service;
+            ServiceCronograma = serviceCronograma;
             AuthorizationService = authorizationService;
             _context = context;
         }
@@ -164,6 +168,32 @@ namespace PeD.Controllers.Propostas
             }
 
             return Forbid();
+        }
+
+        [HttpGet("{id:guid}/Cronograma")]
+        public ActionResult<CronogramaDto> Cronograma(Guid id)
+        {
+            var cronograma = ServiceCronograma.GetCronograma(id);
+            
+            if (cronograma != null)
+            {
+                return Ok(cronograma);
+            }
+
+            return NotFound();
+        }
+
+        [HttpGet("{id:guid}/Cronograma/Etapa/{numEtapa:int}")]
+        public ActionResult<CronogramaDto> Cronograma(Guid id, int numEtapa)
+        {
+            var detalheEtapa = ServiceCronograma.GetDetalheEtapa(id, numEtapa);
+            
+            if (detalheEtapa != null)
+            {
+                return Ok(detalheEtapa);
+            }
+
+            return NotFound();
         }
 
         #endregion

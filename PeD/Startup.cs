@@ -40,6 +40,7 @@ using PeD.Data;
 using PeD.Middlewares;
 using PeD.Services;
 using PeD.Services.Captacoes;
+using PeD.Services.Cronograma;
 using PeD.Services.Demandas;
 using PeD.Services.Projetos;
 using PeD.Services.Projetos.Xml;
@@ -207,6 +208,7 @@ namespace PeD
             services.AddScoped<SistemaService>();
             services.AddScoped<CaptacaoService>();
             services.AddScoped<PropostaService>();
+            services.AddScoped<CronogramaService>();
             services.AddScoped<EmpresaService>();
             services.AddScoped<ProjetoService>();
             services.AddTransient<RelatorioFinalService>();

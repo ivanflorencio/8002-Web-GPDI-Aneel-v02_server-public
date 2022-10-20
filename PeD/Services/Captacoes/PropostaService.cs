@@ -16,6 +16,7 @@ using PeD.Views.Email.Captacao.Propostas;
 using TaesaCore.Interfaces;
 using TaesaCore.Services;
 
+
 namespace PeD.Services.Captacoes
 {
     public class PropostaService : BaseService<Proposta>
@@ -82,8 +83,8 @@ namespace PeD.Services.Captacoes
                 .Include(p =>
                     p.Captacao)
                 .Where(cp => cp.ResponsavelId == responsavelId &&
-                             (cp.Captacao.Status >= Captacao.CaptacaoStatus.Encerrada ||
-                              cp.Participacao == StatusParticipacao.Rejeitado)).ToList();
+                                (cp.Captacao.Status >= Captacao.CaptacaoStatus.Encerrada ||
+                                cp.Participacao == StatusParticipacao.Rejeitado)).ToList();
 
         public IEnumerable<Proposta> GetPropostasPorResponsavel(string userId,
             Captacao.CaptacaoStatus status = Captacao.CaptacaoStatus.Fornecedor)
@@ -163,9 +164,9 @@ namespace PeD.Services.Captacoes
                 .Include(p => p.Captacao)
                 .ThenInclude(c => c.Arquivos)
                 .FirstOrDefault(cp => cp.Fornecedor.ResponsavelId == userId &&
-                                      cp.CaptacaoId == captacaoId &&
-                                      status.Contains(cp.Captacao.Status) &&
-                                      cp.Participacao != StatusParticipacao.Rejeitado);
+                                        cp.CaptacaoId == captacaoId &&
+                                        status.Contains(cp.Captacao.Status) &&
+                                        cp.Participacao != StatusParticipacao.Rejeitado);
         }
 
         public PropostaContrato GetContrato(int propostaId)
