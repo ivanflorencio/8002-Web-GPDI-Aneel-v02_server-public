@@ -28,7 +28,7 @@ namespace PeD.Services.Captacoes
         private DbSet<Escopo> _escopo;
         private DbSet<AlocacaoRh> _recursoHumanoAlocacao;
         private DbSet<AlocacaoRm> _recursoMaterialAlocacao;
-        private DbSet<Meta> _metas;
+        private DbSet<Meta> _metas;        
         private DbSet<PlanoTrabalho> _planoTrabalho;
         private IMapper _mapper;
         private ILogger<PropostaService> _logger;
@@ -55,7 +55,7 @@ namespace PeD.Services.Captacoes
             _recursoMaterial = context.Set<RecursoMaterial>();
             _risco = context.Set<Risco>();
             _escopo = context.Set<Escopo>();
-            _metas = context.Set<Meta>();
+            _metas = context.Set<Meta>();           
             _planoTrabalho = context.Set<PlanoTrabalho>();
             _recursoHumanoAlocacao = context.Set<AlocacaoRh>();
             _recursoMaterialAlocacao = context.Set<AlocacaoRm>();
