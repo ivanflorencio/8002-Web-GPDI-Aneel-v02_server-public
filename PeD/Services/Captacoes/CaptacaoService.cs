@@ -240,8 +240,10 @@ namespace PeD.Services.Captacoes
             }
 
             var captacao = Get(id);
+            var jaPossuiFornecedor = _captacaoFornecedors.Any(cf => cf.CaptacaoId == id);
+            var jaTerminou = captacao.Termino != null;
 
-            if (_captacaoFornecedors.Any(cf => cf.CaptacaoId == id) || captacao.Termino != null)
+            if (jaPossuiFornecedor || jaTerminou)
             {
                 throw new CaptacaoException("Captação já foi configurada");
             }
@@ -284,8 +286,8 @@ namespace PeD.Services.Captacoes
                 .ThenInclude(f => f.Responsavel)
                 .Where(cf => cf.CaptacaoId == id)
                 .Select(cf => cf.Fornecedor).ToList();
-            var taesa = _context.Empresas.FirstOrDefault(e => e.Nome == "TAESA") ??
-                        throw new Exception("Empresa TAESA não encontrada!");
+            var norteEnergia = _context.Empresas.FirstOrDefault(e => e.Nome.ToUpper() == "NORTE ENERGIA") ??
+                        throw new Exception("Empresa NORTE ENERGIA não encontrada!");
             var contratoId = captacao.ContratoId.HasValue
                 ? captacao.ContratoId.Value
                 : throw new Exception("Contrato não definido");
@@ -324,10 +326,10 @@ namespace PeD.Services.Captacoes
                         Required = true,
                         PropostaId = proposta.Id,
                         Funcao = Funcao.Cooperada,
-                        EmpresaRefId = taesa.Id,
-                        Codigo = taesa.Codigo,
-                        RazaoSocial = taesa.Nome,
-                        CNPJ = taesa.Cnpj
+                        EmpresaRefId = norteEnergia.Id,
+                        Codigo = norteEnergia.Codigo,
+                        RazaoSocial = norteEnergia.Nome,
+                        CNPJ = norteEnergia.Cnpj
                     });
                     _context.SaveChanges();
                 }

@@ -11,6 +11,7 @@ namespace PeD.Core.Requests.Proposta
         public int EmpresaFinanciadoraId { get; set; }
         public int EmpresaRecebedoraId { get; set; }
         public int Quantidade { get; set; }
+        public System.Int16 MesDesembolso { get; set; }
         public string Justificativa { get; set; }
         public Dictionary<short, short> HoraMeses { get; set; }
     }

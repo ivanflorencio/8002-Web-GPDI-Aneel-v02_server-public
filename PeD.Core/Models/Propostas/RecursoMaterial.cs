@@ -19,6 +19,7 @@ namespace PeD.Core.Models.Propostas
         public RecursoMaterial Recurso { get; set; }
         public int? EmpresaRecebedoraId { get; set; }
         public Empresa EmpresaRecebedora { get; set; }
+        public System.Int16 MesDesembolso { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")] public decimal Quantidade { get; set; }
 

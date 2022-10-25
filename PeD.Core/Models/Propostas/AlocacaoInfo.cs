@@ -7,7 +7,7 @@ namespace PeD.Core.Models.Propostas
         public string Categoria { get; set; }
         public int PropostaId { get; set; }
         public int EtapaId { get; set; }
-        public short EtapaOrdem { get; set; }
+        public short EtapaOrdem { get; set; }        
         public int EmpresaFinanciadoraId { get; set; }
         public string EmpresaFinanciadora { get; set; }
         public Funcao EmpresaFinanciadoraFuncao { get; set; }

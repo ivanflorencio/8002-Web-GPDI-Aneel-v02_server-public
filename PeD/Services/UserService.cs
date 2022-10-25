@@ -94,6 +94,9 @@ namespace PeD.Services
                 var roles = _userManager.GetRolesAsync(user).Result.ToList();
                 roles.ForEach(r => _userManager.RemoveFromRoleAsync(user, r).Wait());
                 _userManager.AddToRoleAsync(user, dadosUser.Role).Wait();
+                if (dadosUser.Role == "Administrador" || dadosUser.Role == "User") {
+                    _userManager.AddToRoleAsync(user, "Suprimento").Wait();
+                }
 
                 user.Status = dadosUser.Status;
                 user.NomeCompleto = dadosUser.NomeCompleto ?? user.NomeCompleto;
@@ -149,6 +152,9 @@ namespace PeD.Services
                 !string.IsNullOrWhiteSpace(initialRole))
             {
                 _userManager.AddToRoleAsync(user, initialRole).Wait();
+                if (initialRole == "Administrador" || initialRole == "User") {
+                    _userManager.AddToRoleAsync(user, "Suprimento").Wait();
+                }
             }
 
             if (result.Errors.Count() > 0)

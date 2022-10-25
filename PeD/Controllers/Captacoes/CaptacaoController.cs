@@ -91,6 +91,16 @@ namespace PeD.Controllers.Captacoes
         }
 
         [Authorize(Policy = Policies.IsUserPeD)]
+        [HttpGet("ElaboracaoPendente")]
+        public ActionResult<List<CaptacaoElaboracaoDto>> GetEmElaboracaoPendente()
+        {
+            //Service.Paged()
+            var captacoes = Service.GetCaptacoes(Captacao.CaptacaoStatus.Elaboracao);
+            var mapped = Mapper.Map<List<CaptacaoElaboracaoDto>>(captacoes.Where(c => c.UsuarioSuprimentoId == this.UserId()));
+            return Ok(mapped);
+        }
+
+        [Authorize(Policy = Policies.IsUserPeD)]
         [HttpGet("Canceladas")]
         public ActionResult<List<CaptacaoElaboracaoDto>> GetCanceladas()
         {

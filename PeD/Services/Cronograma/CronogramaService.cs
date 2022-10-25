@@ -44,10 +44,18 @@ namespace PeD.Services.Cronograma
 
             //Recuperando desembolsos de RM
             var alocacoesRmEmpresa = alocacaoRmEmpresa.ContainsKey(empresa.Id) ? alocacaoRmEmpresa[empresa.Id] : new List<AlocacaoRm>();
-            var etapas = proposta.Etapas.Where(x => alocacoesRmEmpresa.Select(a=>a.EtapaId).Contains(x.Id)).ToList();
-            etapas.ForEach(e => {
-                var total = (double) etapas.Where(x=>x.Id==e.Id).Sum(x => x.RecursosMateriaisAlocacoes.Sum(r => r.Quantidade * r.Valor));                
-                desembolsos[e.Meses[0]] += total;            
+            var etapas = proposta.Etapas?.Where(x => alocacoesRmEmpresa.Select(a=>a.EtapaId).Contains(x.Id)).ToList();
+            etapas?.ForEach(e => {
+                e.Meses.ForEach(mes => {
+                    var total = (double) etapas
+                                .Where(x=>x.Id==e.Id)
+                                .Sum(x => x.RecursosMateriaisAlocacoes
+                                    .Where(x=>x.MesDesembolso==mes && x.EmpresaFinanciadora.Id == empresa.Id)
+                                    .Sum(r => r.Valor)
+                                );                    
+                    desembolsos[mes] += total;
+                });
+                
             });
         
             return desembolsos;
@@ -177,6 +185,11 @@ namespace PeD.Services.Cronograma
             var etapasProposta = _etapas.Where(e => e.Proposta.Guid == proposta.Guid)                                        
                                         //Produto
                                         .Include(x=>x.Produto)                                        
+                                        .ThenInclude(x=>x.FaseCadeia)
+                                        .Include(x=>x.Produto)                                        
+                                        .ThenInclude(x=>x.TipoDetalhado)
+                                        .Include(x=>x.Produto)                                        
+                                        .ThenInclude(x=>x.ProdutoTipo)
                                         //Recursos Materiais
                                         .Include(x=>x.RecursosMateriaisAlocacoes)
                                         .ThenInclude(x=>x.EmpresaFinanciadora)
@@ -204,6 +217,9 @@ namespace PeD.Services.Cronograma
                         ProdutoDescricao = e.Produto.Descricao,
                         InicioPeriodo = proposta.DataParticipacao.Value.AddMonths(e.Meses.Min()-1),
                         FimPeriodo = proposta.DataParticipacao.Value.AddMonths(e.Meses.Max()-1),
+                        ProdutoTipoDetalhado = e.Produto.TipoDetalhado.Nome,
+                        FaseCadeia = e.Produto.FaseCadeia.Nome,
+                        ProdutoTipo = e.Produto.ProdutoTipo.Nome,
                         Recursos = GetRecursos(e),
                     }
                 });
