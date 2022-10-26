@@ -133,39 +133,49 @@ namespace PeD.Services.Cronograma
 
                 var totalAudConFin = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "AC");
                 var totalMatConsu = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "MC");
+                var totalMatPerm = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "MP");
                 var totalViaDia =GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "VD");
                 var totalRH = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "RH");
                 var totalServTerc = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "ST");
+                var totalStartups = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "SU");
                 var totalOutros = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "OU");
 
                 recurso.QtdAudConFin = totalAudConFin.qtd;
                 recurso.QtdMatConsu = totalMatConsu.qtd;
+                recurso.QtdMatPerm = totalMatPerm.qtd;
                 recurso.QtdViaDia =totalViaDia.qtd;
                 recurso.QtdRH = totalRH.qtd;
                 recurso.QtdServTerc = totalServTerc.qtd;
+                recurso.QtdStartups = totalStartups.qtd;
                 recurso.QtdOutros = totalOutros.qtd;
 
                 recurso.ValorAudConFin = totalAudConFin.valor;
                 recurso.ValorMatConsu = totalMatConsu.valor;
+                recurso.ValorMatPerm = totalMatPerm.valor;
                 recurso.ValorViaDia = totalViaDia.valor;
                 recurso.ValorRH = totalRH.valor;
                 recurso.ValorServTerc = totalServTerc.valor;
+                recurso.ValorStartups = totalStartups.valor;
                 recurso.ValorOutros = totalOutros.valor;
 
                 recurso.Total = recurso.ValorAudConFin + recurso.ValorMatConsu + recurso.ValorViaDia + recurso.ValorRH + recurso.ValorServTerc + recurso.ValorOutros;
 
                 recursoSoma.QtdAudConFin += recurso.QtdAudConFin;
                 recursoSoma.QtdMatConsu += recurso.QtdMatConsu;
+                recursoSoma.QtdMatPerm = recurso.QtdMatPerm;
                 recursoSoma.QtdViaDia += recurso.QtdViaDia;
                 recursoSoma.QtdRH += recurso.QtdRH;
                 recursoSoma.QtdServTerc += recurso.QtdServTerc;
+                recursoSoma.QtdStartups = recurso.QtdStartups;
                 recursoSoma.QtdOutros += recurso.QtdOutros;
 
                 recursoSoma.ValorAudConFin += recurso.ValorAudConFin;
                 recursoSoma.ValorMatConsu += recurso.ValorMatConsu;
+                recursoSoma.ValorMatPerm = recurso.ValorMatPerm;
                 recursoSoma.ValorViaDia += recurso.ValorViaDia;
                 recursoSoma.ValorRH += recurso.ValorRH;
                 recursoSoma.ValorServTerc += recurso.ValorServTerc;
+                recursoSoma.ValorStartups = recurso.ValorStartups;
                 recursoSoma.ValorOutros += recurso.ValorOutros;
                                 
                 recursoSoma.Total += recurso.Total;
