@@ -49,16 +49,11 @@ namespace PeD.Controllers.Propostas
             var produto = Mapper.Map<Produto>(request);
             produto.PropostaId = Proposta.Id;
             produto.Created = DateTime.Now;
-            if (produto.Classificacao != ProdutoClassificacao.Final || !_context.Set<Produto>()
-                .Any(p => p.Classificacao == ProdutoClassificacao.Final && p.PropostaId == Proposta.Id))
-            {
-                Service.Post(produto);
+        
+            Service.Post(produto);
 
-                PropostaService.UpdatePropostaDataAlteracao(Proposta.Id);
-                return Ok();
-            }
-
-            return Problem("Somente um produto final por proposta", null, StatusCodes.Status409Conflict);
+            PropostaService.UpdatePropostaDataAlteracao(Proposta.Id);
+            return Ok();            
         }
 
         [Authorize(Roles = Roles.Fornecedor)]
@@ -70,18 +65,10 @@ namespace PeD.Controllers.Propostas
             var produto = Mapper.Map<Produto>(request);
             produto.PropostaId = Proposta.Id;
             produto.Created = DateTime.Now;
-            if (produto.Classificacao != ProdutoClassificacao.Final || !_context.Set<Produto>()
-                .Any(p =>
-                    p.Classificacao == ProdutoClassificacao.Final &&
-                    p.PropostaId == Proposta.Id &&
-                    p.Id != request.Id))
-            {
-                Service.Put(produto);
-                PropostaService.UpdatePropostaDataAlteracao(Proposta.Id);
-                return Ok();
-            }
-
-            return Problem("Somente um produto final por proposta", null, StatusCodes.Status409Conflict);
+        
+            Service.Put(produto);
+            PropostaService.UpdatePropostaDataAlteracao(Proposta.Id);
+            return Ok();            
         }
 
         public override async Task<IActionResult> Delete(int id)
