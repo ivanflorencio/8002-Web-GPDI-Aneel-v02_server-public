@@ -16,19 +16,7 @@ namespace PeD.Core.Requests.Proposta
         public EtapaRequestValidator()
         {
             RuleFor(r => r.DescricaoAtividades).NotEmpty();
-            RuleFor(r => r.ProdutoId).NotNull();
-            RuleFor(r => r).Custom((r, c) =>
-            {
-                if (r.MesFinal - r.MesInicio < 2)
-                {
-                    c.AddFailure("Duração mínima da etapa é de 3 meses");
-                }
-
-                // if (r.MesFinal - r.MesInicio > 5)
-                // {
-                //     c.AddFailure("Duração máxima da etapa é de 6 meses");
-                // }
-            });
+            RuleFor(r => r.ProdutoId).NotNull();            
         }
     }
 }
