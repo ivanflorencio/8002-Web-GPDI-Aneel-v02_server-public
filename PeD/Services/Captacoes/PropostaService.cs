@@ -448,7 +448,20 @@ namespace PeD.Services.Captacoes
         public FileUpload GetContratoPdf(int propostaId)
         {
             var contrato = GetContrato(propostaId);
-            return contrato?.File;
+            if (contrato?.File != null)
+            {
+                return contrato.File;
+            }
+
+            var contratoContent = PrintContrato(propostaId);
+            if (contratoContent != null)
+            {
+                var arquivo = _pdfService.HtmlToPdf(contratoContent, $"contrato-{contrato.PropostaId}");
+                PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
+                return arquivo;
+            }
+            
+            return null;
         }
 
         #endregion

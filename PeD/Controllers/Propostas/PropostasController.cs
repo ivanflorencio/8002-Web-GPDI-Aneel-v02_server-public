@@ -161,7 +161,7 @@ namespace PeD.Controllers.Propostas
                 var contrato = Service.GetContratoPdf(tempproposta.Id);
                 if (contrato != null)
                 {
-                    return PhysicalFile(contrato.Path, "application/octet-stream", contrato.FileName);
+                    return PhysicalFile(contrato.Path, "application/pdf", contrato.FileName);
                 }
 
                 return NotFound();
