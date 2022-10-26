@@ -375,12 +375,12 @@ namespace PeD.Controllers.Demandas
 
 
         [HttpGet("{id:int}/Logs")]
-        public ActionResult<List<DemandaLogDto>> GetDemandaLog(int id)
+        public ActionResult<List<DemandaLog>> GetDemandaLog(int id)
         {
             if (this.IsAdmin() || DemandaService.UserCanAccess(id, this.UserId()))
             {
                 var logs = DemandaService.GetDemandaLogs(id);
-                return _mapper.Map<List<DemandaLogDto>>(logs);
+                return logs;
             }
 
             return Forbid();
