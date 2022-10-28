@@ -135,6 +135,9 @@ namespace PeD.Services.Captacoes
                 .Include("Produtos.FaseCadeia")
                 .Include("Produtos.TipoDetalhado")
 
+                //Empresas
+                .Include(p=>p.Empresas)
+
                 .Include(p => p.Escopo)
                 .Include(p => p.PlanoTrabalho)
                 .Include(p => p.Fornecedor) 

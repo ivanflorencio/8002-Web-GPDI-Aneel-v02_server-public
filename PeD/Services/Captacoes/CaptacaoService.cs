@@ -36,11 +36,10 @@ namespace PeD.Services.Captacoes
                 .Include(c => c.UsuarioSuprimento)
                 .Include(c => c.Propostas)
                 .Where(c => c.Status == Captacao.CaptacaoStatus.Cancelada ||
-                            (c.Status == Captacao.CaptacaoStatus.Fornecedor &&
-                             c.Termino <= maxDate ||
-                             c.Status >= Captacao.CaptacaoStatus.Encerrada) &&
-                            (c.Propostas.Count == 0 ||
-                             c.Propostas.All(p => !p.Finalizado || !p.Contrato.Finalizado)));
+                            (c.Status == Captacao.CaptacaoStatus.Fornecedor && c.Termino <= maxDate || c.Status >= Captacao.CaptacaoStatus.Encerrada) &&
+                            (c.Propostas.Count == 0 || c.Propostas.All(p => !p.Finalizado || !p.Contrato.Finalizado))
+                        );
+                        
         };
 
         private Func<IQueryable<Captacao>, IQueryable<Captacao>> _queryEncerradas = q =>
@@ -132,9 +131,9 @@ namespace PeD.Services.Captacoes
                 join proposta in propostas on captacao.Id equals proposta.CaptacaoId
                 join contrato in contratos on proposta.Id equals contrato.PropostaId
                 where captacao.Status == Captacao.CaptacaoStatus.Encerrada
-                      && captacao.PropostaSelecionadaId == null
-                      && proposta.Finalizado
-                      && contrato.Finalizado
+                        && captacao.PropostaSelecionadaId == null
+                        && proposta.Finalizado
+                        && contrato.Finalizado
                 select captacao;
             return pendentes.Include(c => c.Propostas)
                 .ThenInclude(p => p.Contrato)
