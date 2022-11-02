@@ -56,6 +56,7 @@ namespace PeD.Services.Demandas
         GestorDbContext _context;
         private SendGridService _sendGridService;
         private PdfService _pdfService;
+        private IService<TabelaValorHora> _tabelaService;
 
         #endregion
 
@@ -68,7 +69,7 @@ namespace PeD.Services.Demandas
             IWebHostEnvironment hostingEnvironment,
             SistemaService sistemaService, IViewRenderService viewRender, IService<Captacao> serviceCaptacao,
             IConfiguration configuration, SendGridService sendGridService, ArquivoService arquivoService,
-            PdfService pdfService, ILogger<DemandaService> logger)
+            PdfService pdfService, ILogger<DemandaService> logger, IService<TabelaValorHora> tabelaService)
             : base(repository)
         {
             _context = context;
@@ -80,6 +81,7 @@ namespace PeD.Services.Demandas
             _sendGridService = sendGridService;
             _pdfService = pdfService;
             _logger = logger;
+            _tabelaService = tabelaService;
             LogService = logService;
 
 
@@ -102,6 +104,7 @@ namespace PeD.Services.Demandas
         public Demanda GetById(int id)
         {
             return _context.Demandas
+                .Include(d => d.TabelaValorHora)
                 .Include("Criador")
                 .Include("Revisor")
                 .Include("SuperiorDireto")
@@ -138,6 +141,7 @@ namespace PeD.Services.Demandas
             return _context.Demandas
                 .Include("Criador")
                 .Include("SuperiorDireto")
+                .Include("TabelaValorHora")
                 .Include("Revisor")
                 .ByUser(cargosChavesIds.Contains(userId) ? null : userId);
         }
@@ -176,8 +180,8 @@ namespace PeD.Services.Demandas
 
         public List<Demanda> GetDemandasCaptacao(string userId = null)
         {
-            return QueryDemandas(userId)
-                .Where(d => d.EtapaAtual == DemandaEtapa.Captacao).ToList();
+            var demandas = QueryDemandas(userId).ToList();
+            return demandas.Where(d => d.EtapaAtual == DemandaEtapa.Captacao).ToList();
         }
 
         public List<Demanda> GetDemandasPendentes(string userId = null)
@@ -288,26 +292,25 @@ namespace PeD.Services.Demandas
             }
         }
 
-        public void SetSuperiorDireto(int id, string superiorDiretoId)
+        public void SetSuperiorDireto(int id, string superiorDiretoId, string tabelaValorHoraId)
         {
             if (DemandaExist(id))
             {
                 var demanda = GetById(id);
                 demanda.SuperiorDiretoId = superiorDiretoId;
+                if (tabelaValorHoraId != null)
+                {
+                    demanda.TabelaValorHoraId = Int32.Parse(tabelaValorHoraId);
+                }
                 _context.SaveChanges();
                 var user = _context.Users.Find(superiorDiretoId);
-                LogService.Incluir(demanda.CriadorId, demanda.Id, "Definiu Superior Direto",
-                    string.Format(" {0} definiu o usuário {1} como superior direto", demanda.Criador.NomeCompleto,
-                        user.NomeCompleto));
+                LogService.Incluir(demanda.CriadorId, demanda.Id, "Definiu Superior Direto e Tabela de Valor/Hora",
+                    string.Format(" {0} definiu o usuário {1} como superior direto e definiu a tabela: '{2}'", demanda.Criador.NomeCompleto,
+                        user.NomeCompleto, demanda.TabelaValorHora.Nome));
                 return;
             }
 
-            throw new DemandaException("Demanda Não existe");
-        }
-
-        public string GetSuperiorDireto(int id)
-        {
-            return DemandaExist(id) ? GetById(id).SuperiorDiretoId : null;
+            throw new DemandaException("Demanda não existe");
         }
 
         public void ReprovarReiniciar(int id, string userId)

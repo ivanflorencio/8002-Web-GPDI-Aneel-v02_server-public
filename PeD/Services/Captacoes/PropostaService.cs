@@ -120,6 +120,16 @@ namespace PeD.Services.Captacoes
                 .FirstOrDefault(p => p.Guid == guid);
         }
 
+        public TabelaValorHora GetTabelaValorHora(Guid guid)
+        {
+            var captacao = _captacaoPropostas
+                .Include(p => p.Captacao)
+                .ThenInclude(c => c.Demanda)
+                .ThenInclude(d => d.TabelaValorHora)
+                .FirstOrDefault(p => p.Guid == guid);
+                return captacao?.Captacao?.Demanda?.TabelaValorHora;
+        }
+
         public Proposta GetPropostaFull(int id)
         {
             var proposta = _captacaoPropostas

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PeD.Core.Models.Demandas;
+using PeD.Core.Models;
 
 namespace PeD.Core.ApiModels.Demandas
 {
@@ -12,10 +13,10 @@ namespace PeD.Core.ApiModels.Demandas
         public string Criador { get; set; }
         public string SuperiorDiretoId { get; set; }
         public string SuperiorDireto { get; set; }
-
         public string RevisorId { get; set; }
         public string Revisor { get; set; }
         public DemandaEtapa EtapaAtual { get; set; }
+        public TabelaValorHora TabelaValorHora { get; set; }
         public DemandaStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CaptacaoDate { get; set; }

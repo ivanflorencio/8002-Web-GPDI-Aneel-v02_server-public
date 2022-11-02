@@ -183,6 +183,19 @@ namespace PeD.Controllers.Propostas
             return NotFound();
         }
 
+        [HttpGet("{id:guid}/TabelaValorHora")]
+        public ActionResult<TabelaValorHora> TabelaValorHora(Guid id)
+        {
+            var tabela = Service.GetTabelaValorHora(id);
+            
+            if (tabela != null)
+            {
+                return Ok(tabela);
+            }
+
+            return NotFound();
+        }
+
         [HttpGet("{id:guid}/Cronograma/Etapa/{numEtapa:int}")]
         public ActionResult<CronogramaDto> Cronograma(Guid id, int numEtapa)
         {

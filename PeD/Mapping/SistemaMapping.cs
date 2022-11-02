@@ -22,8 +22,8 @@ namespace PeD.Mapping
                 .ReverseMap();
             CreateMap<FornecedorCreateRequest, Core.Models.Fornecedores.Fornecedor>().ReverseMap();
             CreateMap<FornecedorEditRequest, Core.Models.Fornecedores.Fornecedor>().ReverseMap();
-            CreateMap<Empresa, EmpresaDto>()
-                .ReverseMap();
+            CreateMap<Empresa, EmpresaDto>().ReverseMap();
+            CreateMap<TabelaValorHora, TabelaValorHoraDto>().ReverseMap();
             CreateMap<Clausula, ClausulaDto>().ReverseMap();
             CreateMap<ItemAjuda, ItemAjudaDto>()
                 .ForMember(i => i.HasContent, opt => opt.MapFrom(

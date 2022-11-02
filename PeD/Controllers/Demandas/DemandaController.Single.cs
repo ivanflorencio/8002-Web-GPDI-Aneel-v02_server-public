@@ -78,7 +78,7 @@ namespace PeD.Controllers.Demandas
                 return NotFound();
             }
 
-            DemandaService.SetSuperiorDireto(id, request.SuperiorDireto);
+            DemandaService.SetSuperiorDireto(id, request.SuperiorDireto, request.TabelaValorHoraId);
 
             return Ok();
         }
@@ -86,10 +86,12 @@ namespace PeD.Controllers.Demandas
         [HttpGet("{id}/EquipeValidacao")]
         public ActionResult<object> GetEquipeValidacao(int id)
         {
-            return new
-            {
-                superiorDireto = DemandaService.GetSuperiorDireto(id)
-            };
+            var dadosDemanda = DemandaService.GetById(id);
+            return dadosDemanda != null ? new {
+                    superiorDireto = dadosDemanda.SuperiorDiretoId,
+                    tabelaValorHora = dadosDemanda.TabelaValorHora.Id,
+                } : null;
+            
         }
 
         [HttpPut("{id}/Revisor")]
