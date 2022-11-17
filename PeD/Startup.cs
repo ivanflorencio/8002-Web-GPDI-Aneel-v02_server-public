@@ -201,6 +201,7 @@ namespace PeD
             #region Serviços
 
             services.AddScoped<SendGridService>();
+            services.AddScoped<MailService>();
             services.AddScoped<ArquivoService>();
             services.AddScoped<UserService>();
             services.AddScoped<DemandaService>();
@@ -209,6 +210,7 @@ namespace PeD
             services.AddScoped<CaptacaoService>();
             services.AddScoped<PropostaService>();
             services.AddScoped<CronogramaService>();
+            services.AddScoped<CronogramaProjetoService>();
             services.AddScoped<EmpresaService>();
             services.AddScoped<ProjetoService>();
             services.AddTransient<RelatorioFinalService>();
@@ -392,6 +394,7 @@ namespace PeD
         private void ConfigureEmail(IServiceCollection services)
         {
             var sendgrid = Configuration.GetSection("SendGrid");
+            var mailSettings = Configuration.GetSection("EmailSettings");
             var emailConfig = new EmailConfig
             {
                 ApiKey = sendgrid.GetValue<string>("ApiKey"),
@@ -399,6 +402,14 @@ namespace PeD
                 SenderName = sendgrid.GetValue<string>("SenderName"),
                 Bcc = sendgrid.GetSection("Bcc").Get<string[]>()
             };
+            var emailSettings = new EmailSettings
+            {
+                DisplayName = mailSettings.GetValue<string>("DisplayName"),
+                Host = mailSettings.GetValue<string>("Host"),
+                Port = mailSettings.GetValue<int>("Port"),
+                Mail = mailSettings.GetValue<string>("Mail"),
+            };
+            services.AddSingleton(emailSettings);
             services.AddSingleton(emailConfig);
         }
 

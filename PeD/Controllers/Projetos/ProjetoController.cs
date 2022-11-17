@@ -20,6 +20,8 @@ using PeD.Services;
 using PeD.Services.Projetos;
 using PeD.Services.Projetos.Xml;
 using Swashbuckle.AspNetCore.Annotations;
+using PeD.Core.ApiModels.Cronograma;
+using PeD.Services.Cronograma;
 using TaesaCore.Controllers;
 using TaesaCore.Interfaces;
 using Empresa = PeD.Core.Models.Projetos.Empresa;
@@ -35,6 +37,7 @@ namespace PeD.Controllers.Projetos
     {
         private new ProjetoService Service;
         protected GestorDbContext Context;
+        private CronogramaProjetoService ServiceCronogramaProjeto;
         private ILogger<ProjetoController> _logger;
 
         private IQueryable<Projeto> _projetoQuery(IQueryable<Projeto> q)
@@ -44,11 +47,12 @@ namespace PeD.Controllers.Projetos
                 .Where(p => isGestor || p.Fornecedor.ResponsavelId == this.UserId());
         }
 
-        public ProjetoController(ProjetoService service, IMapper mapper, GestorDbContext context,
+        public ProjetoController(ProjetoService service, IMapper mapper, CronogramaProjetoService serviceCronogramaProjeto, GestorDbContext context,
             ILogger<ProjetoController> logger) : base(service,
             mapper)
         {
             Service = service;
+            ServiceCronogramaProjeto = serviceCronogramaProjeto;
             Context = context;
             _logger = logger;
         }
@@ -92,6 +96,20 @@ namespace PeD.Controllers.Projetos
 
             return Ok(Mapper.Map<ProjetoDto>(projeto));
         }
+
+        [HttpGet("{id:int}/Cronograma")]
+        public ActionResult<CronogramaDto> Cronograma(int id)
+        {
+            var cronograma = ServiceCronogramaProjeto.GetCronograma(id);
+            
+            if (cronograma != null)
+            {
+                return Ok(cronograma);
+            }
+
+            return NotFound();
+        }
+
 
         [HttpPut("{id:int}/Status")]
         public ActionResult UpdateStatus(int id, [FromBody] ProjetoStatusRequest request)

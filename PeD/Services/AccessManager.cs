@@ -157,7 +157,7 @@ namespace PeD.Services
         }
 
         public async Task<bool> SendRecoverAccountEmail(string email, bool newAccount = false,
-            string subject = "Redefinição de Senha - Gerenciador PDI Taesa")
+            string subject = "Redefinição de Senha - Gerenciador PDI Norte Energia")
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) return false;

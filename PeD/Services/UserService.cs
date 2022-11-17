@@ -108,6 +108,7 @@ namespace PeD.Services
                 user.Cpf = dadosUser.Cpf ?? user.Cpf;
                 user.Cargo = dadosUser.Cargo ?? user.Cargo;
                 user.DataAtualizacao = DateTime.Now;
+
                 _context.SaveChanges();
             }
 
