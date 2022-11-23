@@ -8,6 +8,7 @@ namespace PeD.Core.Models.Projetos
         public int ProjetoId { get; set; }
         public string Tipo { get; set; }
         public int EtapaId { get; set; }
+        public string HorasEtapas { get; set; }
         public short Ordem { get; set; }
         public int? RecursoHumanoId { get; set; }
         public int? RecursoMaterialId { get; set; }

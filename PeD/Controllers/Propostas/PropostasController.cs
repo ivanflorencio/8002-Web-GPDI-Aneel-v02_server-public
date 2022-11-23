@@ -34,15 +34,17 @@ namespace PeD.Controllers.Propostas
     {
         private new PropostaService Service;
         private CronogramaService ServiceCronograma;
+        private CronogramaProjetoService ServiceCronogramaProjeto;
         private GestorDbContext _context;
         public readonly IAuthorizationService AuthorizationService;
 
         public PropostasController(PropostaService service, CronogramaService serviceCronograma, IMapper mapper, IAuthorizationService authorizationService,
-            GestorDbContext context)
+            GestorDbContext context, CronogramaProjetoService serviceCronogramaProjeto)
             : base(service, mapper)
         {
             Service = service;
             ServiceCronograma = serviceCronograma;
+            ServiceCronogramaProjeto = serviceCronogramaProjeto;
             AuthorizationService = authorizationService;
             _context = context;
         }
@@ -173,7 +175,8 @@ namespace PeD.Controllers.Propostas
         [HttpGet("{id:guid}/Cronograma")]
         public ActionResult<CronogramaDto> Cronograma(Guid id)
         {
-            var cronograma = ServiceCronograma.GetCronograma(id);
+            //var cronograma = ServiceCronograma.GetCronograma(id);
+            var cronograma = ServiceCronogramaProjeto.GetCronograma(1);
             
             if (cronograma != null)
             {
