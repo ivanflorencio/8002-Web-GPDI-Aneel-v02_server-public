@@ -175,8 +175,8 @@ namespace PeD.Controllers.Propostas
         [HttpGet("{id:guid}/Cronograma")]
         public ActionResult<CronogramaDto> Cronograma(Guid id)
         {
-            //var cronograma = ServiceCronograma.GetCronograma(id);
-            var cronograma = ServiceCronogramaProjeto.GetCronograma(1);
+            var cronograma = ServiceCronograma.GetCronograma(id);
+            //var cronograma = ServiceCronogramaProjeto.GetCronograma(1);
             
             if (cronograma != null)
             {

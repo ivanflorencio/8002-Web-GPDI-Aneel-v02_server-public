@@ -46,24 +46,31 @@ namespace PeD.Services
 
             message.From = new MailAddress(EmailSettings.Mail, EmailSettings.DisplayName);
             foreach (var to in tosEmail)
-                message.To.Add(new MailAddress(to));
-
-            message.Subject = subject;
-
-            var viewContent = await ViewRender.RenderToStringAsync(viewName, model);
-
-            message.IsBodyHtml = true;
-            message.Body = viewContent;
-            smtp.Port = EmailSettings.Port;
-            smtp.Host = EmailSettings.Host;            
-            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-            try { 
-                await smtp.SendMailAsync(message);
-                return true;
-            } catch (Exception e)
             {
-                Logger.LogError("Erro no disparo de email: {Error}.", e.Message);
-                Logger.LogError("StackError: {Error}", e.StackTrace);
+                if (!string.IsNullOrEmpty(to))
+                    message.To.Add(new MailAddress(to));
+            }
+            if (message.To.Count > 0) {
+                
+                message.Subject = subject;
+
+                var viewContent = await ViewRender.RenderToStringAsync(viewName, model);
+
+                message.IsBodyHtml = true;
+                message.Body = viewContent;
+                smtp.Port = EmailSettings.Port;
+                smtp.Host = EmailSettings.Host;            
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                try { 
+                    await smtp.SendMailAsync(message);
+                    return true;
+                } catch (Exception e)
+                {
+                    Logger.LogError("Erro no disparo de email: {Error}.", e.Message);
+                    Logger.LogError("StackError: {Error}", e.StackTrace);
+                    return false;
+                }
+            } else {
                 return false;
             }
         }

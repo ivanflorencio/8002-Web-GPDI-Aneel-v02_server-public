@@ -58,7 +58,7 @@ namespace PeD.Core.Models.Demandas
         public int? EspecificacaoTecnicaFileId { get; set; }
         public FileUpload EspecificacaoTecnicaFile { get; set; }
         public TabelaValorHora TabelaValorHora { get; set; }
-        public int TabelaValorHoraId { get; set; }
+        public int? TabelaValorHoraId { get; set; }
 
         public void ValidarContinuidade()
         {

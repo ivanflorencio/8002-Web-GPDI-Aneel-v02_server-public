@@ -89,7 +89,7 @@ namespace PeD.Controllers.Demandas
             var dadosDemanda = DemandaService.GetById(id);
             return dadosDemanda != null ? new {
                     superiorDireto = dadosDemanda.SuperiorDiretoId,
-                    tabelaValorHora = dadosDemanda.TabelaValorHora.Id,
+                    tabelaValorHora = dadosDemanda.TabelaValorHora?.Id,
                 } : null;
             
         }
