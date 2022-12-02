@@ -8,5 +8,6 @@ namespace PeD.Core.ApiModels.Cronograma
         public List<double> Desembolso { get; set; }
         public List<double> Executado { get; set; }        
         public double Total { get; set; }
+        public double TotalExecutado { get; set; }
     }
 }

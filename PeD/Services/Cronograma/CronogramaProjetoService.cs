@@ -92,7 +92,8 @@ namespace PeD.Services.Cronograma
                         Nome = empresa.Nome,
                         Desembolso = desembolso.Values.ToList(),
                         Executado = executado.Values.ToList(),
-                        Total = Enumerable.Sum(desembolso.Values.ToList())
+                        Total = Enumerable.Sum(desembolso.Values.ToList()),
+                        TotalExecutado = Enumerable.Sum(executado.Values.ToList())
                     }); 
                 }
             });
