@@ -43,11 +43,13 @@ namespace PeD.Services.Cronograma
                 foreach (var etapa in projeto.Etapas) {
                     if (orcamento.EtapaId == etapa.Id) {
                         if (orcamento.Tipo == "AlocacaoRh") {
-                            var horasEtapa = orcamento.HorasEtapas.Split(',').Select(int.Parse).ToList();
-                            int indexMes = 0;
-                            foreach (var mes in etapa.Meses) {
-                                desembolsos[mes] += (double) orcamento.Custo * horasEtapa[indexMes];
-                                indexMes++;
+                            var horasEtapa = orcamento?.HorasEtapas?.Split(',').Select(int.Parse).ToList();
+                            if (horasEtapa != null) {
+                                int indexMes = 0;
+                                foreach (var mes in etapa.Meses) {
+                                    desembolsos[mes] += (double) orcamento.Custo * horasEtapa[indexMes];
+                                    indexMes++;
+                                }
                             }
                         } else {                            
                             desembolsos[etapa.Meses[0]] += (double) orcamento.Total;                            
@@ -62,32 +64,31 @@ namespace PeD.Services.Cronograma
         private Dictionary<int, double> GetRegistrosEmpresa(Projeto projeto, Empresa empresa) {
             var registros = new Dictionary<int, double>();
 
-            //Zerando hash de desembolsos
-            for (int i = 0; i < duracaoProjeto; i++) registros.Add(i+1, 0);
-
             //Recuperando desembolsos de RH
             var registrosEmpresa = RegistrosFinanceirosProjeto.Where(o => o.RecebedoraId == empresa.Id).ToList();
 
-            foreach (var etapa in projeto.Etapas) {                                        
-                foreach (var mes in etapa.Meses) {
-                    var mesReferencia = projeto.DataInicioProjeto.AddMonths(mes-1);
-                    registros[mes] += (double) registrosEmpresa.Where(x=>x.Etapa == etapa.Ordem && x.MesReferencia == mesReferencia).Sum(x=>x.Custo);
-                }
+           
+            //Zerando hash de desembolsos
+            for (int i = 0; i < duracaoProjeto; i++) {
+                registros.Add(i+1, 0);
+            }
+
+            for (int mes = 1; mes <= duracaoProjeto; mes++) {        
+                var mesReferencia = projeto.DataInicioProjeto.AddMonths(mes-1);
+                var valorMes = (double) registrosEmpresa.Where(x=> x.MesReferencia == mesReferencia).Sum(x=>x.Custo);
+                registros[mes] += valorMes;
             }
             
-            foreach (var registro in registrosEmpresa) {
-               
-            }
-             
             return registros;
         }
 
         private List<EmpresaCronogramaDto> GetEmpresas(Projeto projeto) {
+            RegistrosFinanceirosProjeto = _projetoService.GetRegistrosFinanceiros(projeto.Id, StatusRegistro.Aprovado).ToList();
             var empresas = new List<EmpresaCronogramaDto>();
             projeto.Empresas.ForEach(empresa => {
                 var desembolso = GetDesembolsosEmpresa(projeto, empresa);
                 var executado = GetRegistrosEmpresa(projeto, empresa);
-                if (desembolso.Sum(d => d.Value) > 0) {
+                if (desembolso.Sum(d => d.Value) > 0 || executado.Sum(d => d.Value) > 0) {
                     empresas.Add(new EmpresaCronogramaDto {
                         Nome = empresa.Nome,
                         Desembolso = desembolso.Values.ToList(),
@@ -115,8 +116,6 @@ namespace PeD.Services.Cronograma
             var orcamentosEtapa = OrcamentosProjeto.Where(x=>x.EtapaId == etapa.Id).ToList();
             var empresasEtapa = OrcamentosProjeto.Select(x=>x.RecebedoraId).Distinct().ToList();
 
-            
-            
             empresasEtapa.ForEach(empresaId => {
                 
                 var itens = orcamentosEtapa.Where(x=>x.RecebedoraId == empresaId).ToList();
@@ -187,8 +186,7 @@ namespace PeD.Services.Cronograma
 
             var etapas = new List<EtapaCronogramaDto>();
             OrcamentosProjeto = _projetoService.GetOrcamentos(projeto.Id).ToList();
-            RegistrosFinanceirosProjeto = _projetoService.GetRegistrosFinanceiros(projeto.Id, StatusRegistro.Aprovado).ToList();
-
+            
             var etapasProjeto = _etapas.Where(e => e.ProjetoId == projeto.Id)                                        
                                         .Include(x=>x.Produto)                                        
                                         .ThenInclude(x=>x.FaseCadeia)
@@ -231,7 +229,7 @@ namespace PeD.Services.Cronograma
                 };
         }
         
-        public CronogramaDto GetCronograma(int id)
+        public CronogramaDto GetCronograma(int id, bool consolidado = false)
         {
             var projeto = this._projetos.Where(x => x.Id == id)
                                         .Include(x => x.Empresas)
@@ -239,23 +237,141 @@ namespace PeD.Services.Cronograma
                                         .FirstOrDefault();
             var cronograma = new CronogramaDto();
             if (projeto != null) {
-                duracaoProjeto = projeto.Duracao;
+                duracaoProjeto = projeto.Duracao;                
                 cronograma.Inicio = GetInicio(projeto);
-                cronograma.Etapas = GetEtapas(projeto);
+                if (!consolidado) cronograma.Etapas = GetEtapas(projeto);                            
                 cronograma.Empresas = GetEmpresas(projeto);
             }
             return cronograma;
         }
 
-        public DetalheEtapaDto GetDetalheEtapa(Guid guid, int numeroEtapa)
+        public CronogramaConsolidadoDto GetCronogramaConsolidado()
         {
-            var etapa = new DetalheEtapaDto();
+            int mesInicio = 0;
+            int anoInicio = 0;
+            int mesFim = 0;
+            int anoFim = 0;
+            var projetos = this._projetos.Where(x => x.Status == Status.Execucao)
+                                        .Include(x => x.Empresas)
+                                        .Include(x => x.Etapas)
+                                        .OrderBy(x=>x.DataInicioProjeto)
+                                        .ToList();
 
-            etapa.Etapa = "";
-            etapa.ProdutoDescricao = "";
-            etapa.InicioPeriodo = new DateTime(2022, 8, 1);
-            etapa.FimPeriodo = new DateTime(2022, 11, 1);            
-            return etapa;
+            var cronograma = new CronogramaConsolidadoDto();
+            cronograma.Etapas = new List<ProjetoCronogramaDto>();
+
+            var empresasConsolidado = new List<EmpresaCronogramaDto>();
+            var cronogramasProjetos = new Dictionary<int,CronogramaDto>();
+
+            foreach (var projeto in projetos) {
+                OrcamentosProjeto = _projetoService.GetOrcamentos(projeto.Id).ToList();
+                var projetoDto = new ProjetoCronogramaDto {
+                        ProjetoId = projeto.Id,
+                        Titulo = projeto.Titulo, 
+                        TituloCompleto = projeto.TituloCompleto,
+                        Etapa = projeto.Codigo + " - " + projeto.Titulo,
+                        Produto = projeto.TituloCompleto,
+                        Codigo = projeto.Codigo,
+                        Numero = projeto.Id.ToString(),
+                        MesInicio = projeto.DataInicioProjeto.Month,
+                        AnoInicio = projeto.DataInicioProjeto.Year,
+                        MesFim = projeto.DataFinalProjeto.Month,
+                        AnoFim = projeto.DataFinalProjeto.Year,
+                        
+                    };
+                cronograma.Etapas.Add(projetoDto);
+                                
+                if (GetPesoMesAno(projetoDto.MesInicio, projetoDto.AnoInicio) < GetPesoMesAno(mesInicio, anoInicio) || mesInicio == 0) {
+                    mesInicio = projetoDto.MesInicio;
+                    anoInicio = projetoDto.AnoInicio;
+                }
+
+                if (GetPesoMesAno(projetoDto.MesFim, projetoDto.AnoFim) > GetPesoMesAno(mesFim, anoFim) || mesFim == 0) {
+                    mesFim = projetoDto.MesFim;
+                    anoFim = projetoDto.AnoFim;
+                }  
+                //Recuperando cronograma de cada projeto
+                duracaoProjeto = projeto.Duracao;
+                cronogramasProjetos.Add(projeto.Id, new CronogramaDto {
+                    Inicio = GetInicio(projeto),                
+                    Empresas = GetEmpresas(projeto),
+                });              
+            }
+
+            //Calculando o número de meses do cronograma consolidado
+            cronograma.Inicio = new InicioCronogramaDto {
+                Mes = mesInicio,
+                Ano = anoInicio,
+                NumeroMeses = (anoFim - anoInicio) * 12 + (mesFim - mesInicio) + 1
+            };
+
+            //Recuperando as empresas de todos os projetos
+            var desembolsosConsolidado = new Dictionary<int, double>();
+
+            //Zerando hash de desembolsos
+            for (int i = 0; i < cronograma.Inicio.NumeroMeses; i++) desembolsosConsolidado.Add(i+1, 0);
+
+            foreach (var projeto in cronograma.Etapas) {
+                projeto.Meses = GetMesesProjeto(cronogramasProjetos[projeto.ProjetoId], cronograma);
+                cronogramasProjetos[projeto.ProjetoId].Empresas.ForEach(x => {
+                    if (!empresasConsolidado.Any(y => y.Nome == x.Nome)) {
+                        empresasConsolidado.Add(
+                            new EmpresaCronogramaDto {
+                                Nome = x.Nome,
+                                Desembolso = desembolsosConsolidado.Values.ToList(),
+                                Executado = desembolsosConsolidado.Values.ToList(),
+                            }
+                        );
+                    }
+                });
+            }
+
+            foreach (var projeto in cronograma.Etapas) {
+                SomarDesembolsosEmpresa(ref empresasConsolidado, projeto.ProjetoId, projeto, cronogramasProjetos[projeto.ProjetoId], cronograma);
+            }
+            
+            cronograma.Empresas = empresasConsolidado;
+            return cronograma;
+        }
+
+        private void SomarDesembolsosEmpresa(
+            ref List<EmpresaCronogramaDto> empresas, 
+            int projetoId, 
+            ProjetoCronogramaDto projetoDto, 
+            CronogramaDto cronogramaProjeto, 
+            CronogramaConsolidadoDto cronogramaConsolidado
+        ) {
+            int mesInicioProjeto = GetMesInicioProjeto(cronogramaProjeto, cronogramaConsolidado);
+            foreach (var empresa in empresas) {
+                var desembolsoEmpresa = cronogramaProjeto.Empresas.Where(x => x.Nome == empresa.Nome).FirstOrDefault();
+                if (desembolsoEmpresa != null) {
+                    for (int i = 0; i < desembolsoEmpresa.Desembolso.Count; i++) {
+                        empresa.Desembolso[mesInicioProjeto + i] += desembolsoEmpresa.Desembolso[i];
+                    }
+                    for (int i = 0; i < desembolsoEmpresa.Executado.Count; i++) {
+                        empresa.Executado[mesInicioProjeto + i] += desembolsoEmpresa.Executado[i];
+                    }
+                }
+            }
+        }
+
+        private List<int> GetMesesProjeto(CronogramaDto cronogramaProjeto, CronogramaConsolidadoDto cronogramaConsolidado) {
+            var mesInicial = GetMesInicioProjeto(cronogramaProjeto, cronogramaConsolidado);
+            var meses = new List<int>();
+            for (int i = 1; i <= cronogramaProjeto.Inicio.NumeroMeses; i++) {
+                meses.Add(mesInicial + i);
+            }
+            return meses;
+        }
+
+        private int GetMesInicioProjeto(CronogramaDto cronogramaProjeto, CronogramaConsolidadoDto cronogramaConsolidado) {
+            var dataInicioCronograma = new DateTime(cronogramaConsolidado.Inicio.Ano, cronogramaConsolidado.Inicio.Mes, 1);
+            var dataInicioProjeto = new DateTime(cronogramaProjeto.Inicio.Ano, cronogramaProjeto.Inicio.Mes, 1);
+            return (int) Math.Round(dataInicioProjeto.Subtract(dataInicioCronograma).TotalDays / 30);
+        }
+        
+        private double GetPesoMesAno(int mes, int ano) {
+            return ano + (mes / 12.0);
         }
 
     }
