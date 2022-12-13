@@ -9,12 +9,15 @@ using TaesaCore.Services;
 using PeD.Data;
 using PeD.Services.Projetos;
 using PeD.Core.ApiModels.Projetos;
+using PeD.Core.Requests.Projetos;
+using PeD.Services.Captacoes;
 
 namespace PeD.Services.Cronograma
 {
     public class CronogramaProjetoService : BaseService<Projeto>
     {
         private int duracaoProjeto = 0;
+        private int saltoId = 1000000;
         private List<Orcamento> OrcamentosProjeto = new List<Orcamento>();
         private List<RegistroFinanceiroInfo> RegistrosFinanceirosProjeto = new List<RegistroFinanceiroInfo>();
         private Dictionary<int, double> valorHoraRecurso = new Dictionary<int, double>();
@@ -22,13 +25,15 @@ namespace PeD.Services.Cronograma
         private DbSet<Projeto> _projetos;
         private DbSet<AlocacaoRhHorasMes> _horasMes;
         private ProjetoService _projetoService;
+        private CronogramaService _cronogramaService;   
         
-        public CronogramaProjetoService(IRepository<Projeto> repository, GestorDbContext context, ProjetoService projetoService) : base(repository)
+        public CronogramaProjetoService(IRepository<Projeto> repository, GestorDbContext context, ProjetoService projetoService, CronogramaService cronogramaService) : base(repository)
         {
             _etapas = context.Set<Etapa>();
             _projetos = context.Set<Projeto>();
             _horasMes = context.Set<AlocacaoRhHorasMes>();
             _projetoService = projetoService;
+            _cronogramaService = cronogramaService; 
         }
 
         private Dictionary<int, double> GetDesembolsosEmpresa(Projeto projeto, Empresa empresa) {
@@ -245,7 +250,26 @@ namespace PeD.Services.Cronograma
             return cronograma;
         }
 
-        public CronogramaConsolidadoDto GetCronogramaConsolidado()
+        public CronogramaConsolidadoDto GetCronogramaConsolidadoSimulado(List<CronogramaSimuladoRequest> projetos) {
+            List<Projeto> projetosSimulados = new List<Projeto>();
+            foreach (var projeto in projetos) {
+                var mesProjeto = Int32.Parse(projeto.MesInicio.Split("-")[1]);
+                var anoProjeto = Int32.Parse(projeto.MesInicio.Split("-")[0]);
+                var dataInicio = new DateTime(anoProjeto, mesProjeto, 1);
+                projetosSimulados.Add(new Projeto
+                {
+                    Id = projeto.Id + saltoId,
+                    Titulo = projeto.Etapa,
+                    TituloCompleto = "Simulação",
+                    Codigo = projeto.Proposta,
+                    DataInicioProjeto = dataInicio.Date,
+                    DataFinalProjeto = dataInicio.AddMonths(projeto.Duracao).Date,
+                }); ;
+            }
+            return GetCronogramaConsolidado(projetosSimulados);
+        }
+
+        public CronogramaConsolidadoDto GetCronogramaConsolidado(List<Projeto> projetosSimulados = null)
         {
             int mesInicio = 0;
             int anoInicio = 0;
@@ -263,13 +287,18 @@ namespace PeD.Services.Cronograma
             var empresasConsolidado = new List<EmpresaCronogramaDto>();
             var cronogramasProjetos = new Dictionary<int,CronogramaDto>();
 
+            if (projetosSimulados != null)
+                foreach (Projeto simulado in projetosSimulados) { 
+                    projetos.Add(simulado);
+                }
+
             foreach (var projeto in projetos) {
                 OrcamentosProjeto = _projetoService.GetOrcamentos(projeto.Id).ToList();
                 var projetoDto = new ProjetoCronogramaDto {
                         ProjetoId = projeto.Id,
                         Titulo = projeto.Titulo, 
                         TituloCompleto = projeto.TituloCompleto,
-                        Etapa = projeto.Codigo + " - " + projeto.Titulo,
+                        Etapa = (projeto.Id > saltoId) ? projeto.Titulo : projeto.Codigo + " - " + projeto.Titulo,
                         Produto = projeto.TituloCompleto,
                         Codigo = projeto.Codigo,
                         Numero = projeto.Id.ToString(),
@@ -292,11 +321,22 @@ namespace PeD.Services.Cronograma
                 }  
                 //Recuperando cronograma de cada projeto
                 duracaoProjeto = projeto.Duracao;
-                cronogramasProjetos.Add(projeto.Id, new CronogramaDto {
-                    Inicio = GetInicio(projeto),                
-                    Empresas = GetEmpresas(projeto),
-                });              
+                if (projeto.Id < saltoId) { 
+                    cronogramasProjetos.Add(projeto.Id, new CronogramaDto {
+                        Inicio = GetInicio(projeto),                
+                        Empresas = GetEmpresas(projeto),
+                    });
+                } else
+                {
+                    if (cronogramasProjetos.ContainsKey(projeto.Id))
+                    {
+                        cronogramasProjetos[projeto.Id] = _cronogramaService.GetCronograma(new Guid(projeto.Codigo));
+                    } else { 
+                        cronogramasProjetos.Add(projeto.Id, _cronogramaService.GetCronograma(new Guid(projeto.Codigo)));
+                    }
+                }
             }
+
 
             //Calculando o número de meses do cronograma consolidado
             cronograma.Inicio = new InicioCronogramaDto {
@@ -312,18 +352,25 @@ namespace PeD.Services.Cronograma
             for (int i = 0; i < cronograma.Inicio.NumeroMeses; i++) desembolsosConsolidado.Add(i+1, 0);
 
             foreach (var projeto in cronograma.Etapas) {
-                projeto.Meses = GetMesesProjeto(cronogramasProjetos[projeto.ProjetoId], cronograma);
-                cronogramasProjetos[projeto.ProjetoId].Empresas.ForEach(x => {
-                    if (!empresasConsolidado.Any(y => y.Nome == x.Nome)) {
-                        empresasConsolidado.Add(
-                            new EmpresaCronogramaDto {
-                                Nome = x.Nome,
-                                Desembolso = desembolsosConsolidado.Values.ToList(),
-                                Executado = desembolsosConsolidado.Values.ToList(),
-                            }
-                        );
-                    }
-                });
+                if (projeto.ProjetoId < saltoId) { 
+                    projeto.Meses = GetMesesProjeto(cronogramasProjetos[projeto.ProjetoId], cronograma);
+                    cronogramasProjetos[projeto.ProjetoId].Empresas.ForEach(x => {
+                        if (!empresasConsolidado.Any(y => y.Nome == x.Nome)) {
+                            empresasConsolidado.Add(
+                                new EmpresaCronogramaDto {
+                                    Nome = x.Nome,
+                                    Desembolso = desembolsosConsolidado.Values.ToList(),
+                                    Executado = desembolsosConsolidado.Values.ToList(),
+                                }
+                            );
+                        }
+                    });
+                } else
+                {
+                    cronogramasProjetos[projeto.ProjetoId].Inicio.Mes = projeto.MesInicio;
+                    cronogramasProjetos[projeto.ProjetoId].Inicio.Ano = projeto.AnoInicio;
+                    projeto.Meses = GetMesesProjeto(cronogramasProjetos[projeto.ProjetoId], cronograma);
+                }
             }
 
             foreach (var projeto in cronograma.Etapas) {
@@ -348,9 +395,10 @@ namespace PeD.Services.Cronograma
                     for (int i = 0; i < desembolsoEmpresa.Desembolso.Count; i++) {
                         empresa.Desembolso[mesInicioProjeto + i] += desembolsoEmpresa.Desembolso[i];
                     }
-                    for (int i = 0; i < desembolsoEmpresa.Executado.Count; i++) {
-                        empresa.Executado[mesInicioProjeto + i] += desembolsoEmpresa.Executado[i];
-                    }
+                    if (desembolsoEmpresa.Executado != null)
+                        for (int i = 0; i < desembolsoEmpresa.Executado.Count; i++) {
+                            empresa.Executado[mesInicioProjeto + i] += desembolsoEmpresa.Executado[i];
+                        }
                 }
             }
         }

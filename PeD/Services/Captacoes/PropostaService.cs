@@ -169,6 +169,21 @@ namespace PeD.Services.Captacoes
             return GetPropostaPorResponsavel(captacaoId, userId, Captacao.CaptacaoStatus.Fornecedor);
         }
 
+        public List<Proposta> GetPropostasSimulacao()
+        {
+            return _captacaoPropostas
+                .Include(p => p.Fornecedor)
+                .Include(p => p.Captacao)
+                .Include(p => p.Contrato)
+                .Where(cp =>
+                    cp.DataParticipacao != null &&
+                    cp.Captacao.Status != Captacao.CaptacaoStatus.Cancelada &&
+                    cp.Captacao.Status != Captacao.CaptacaoStatus.Fornecedor &&
+                    cp.Captacao.Status != Captacao.CaptacaoStatus.AnaliseRisco &&
+                    cp.Participacao != StatusParticipacao.Rejeitado)
+                .ToList();
+        }
+
         public Proposta GetPropostaPorResponsavel(int captacaoId, string userId,
             params Captacao.CaptacaoStatus[] status)
         {

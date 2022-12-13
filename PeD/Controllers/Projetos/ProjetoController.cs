@@ -123,6 +123,19 @@ namespace PeD.Controllers.Projetos
             return NotFound();
         }
 
+        [HttpPost("CronogramaConsolidadoSimulado")]
+        public ActionResult<CronogramaConsolidadoDto> CronogramaConsolidado([FromBody] List<CronogramaSimuladoRequest> request)
+        {
+            var cronogramaConsolidado = ServiceCronogramaProjeto.GetCronogramaConsolidadoSimulado(request);
+            
+            if (cronogramaConsolidado != null)
+            {
+                return Ok(cronogramaConsolidado);
+            }
+
+            return NotFound();
+        }
+
 
 
         [HttpPut("{id:int}/Status")]

@@ -224,6 +224,14 @@ namespace PeD.Controllers.Propostas
             return Ok(Mapper.Map<List<PropostaDto>>(propostas));
         }
 
+
+        [HttpGet("PropostasSimulacao")]
+        public ActionResult<List<PropostaDto>> GetPropostasSimulacao()
+        {
+            var propostas = Service.GetPropostasSimulacao();
+            return Ok(Mapper.Map<List<PropostaDto>>(propostas));
+        }
+
         [Authorize(Roles = Roles.Fornecedor)]
         [HttpGet("Encerradas")]
         public ActionResult<List<PropostaDto>> GetPropostasEncerradas()
