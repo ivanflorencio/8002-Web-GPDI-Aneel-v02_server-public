@@ -3633,7 +3633,7 @@ namespace PeD.Data.Migrations
                             Categoria = 1,
                             Cnpj = "09.274.998/0001-97",
                             Nome = "BRASNORTE",
-                            Valor = "06625"
+                            Valor = "07427"
                         },
                         new
                         {
