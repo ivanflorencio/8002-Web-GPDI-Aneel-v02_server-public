@@ -103,5 +103,15 @@ namespace PeD.Controllers.Sistema
             
             return Ok(tabela);
         }
+
+        [Authorize(Policy = Policies.IsAdmin)]
+        [HttpDelete("{id}")]
+        public override IActionResult Delete(int id)
+        {
+            if (!Service.Exist(id))
+                return NotFound();
+                Service.Delete(id);
+            return Ok();
+        }
     }
 }
