@@ -2280,7 +2280,7 @@ namespace PeD.Data.Migrations
                     { 14, true, 1, "07.859.971/0001-30", "Empresa", "TSN", null, "02607" },
                     { 6, true, 1, "07.859.971/0001-30", "Empresa", "GTESA", null, "03624" },
                     { 15, true, 1, "05.063.249/0001-60", "Empresa", "ETAU", null, "03942" },
-                    { 16, true, 1, "09.274.998/0001-97", "Empresa", "BRASNORTE", null, "06625" }
+                    { 16, true, 1, "09.274.998/0001-97", "Empresa", "BRASNORTE", null, "07427" }
                 });
 
             migrationBuilder.InsertData(

@@ -433,7 +433,8 @@ namespace PeD.Services.Demandas
             if (temaAneel == null)
                 throw new DemandaException("Tema Aneel ausente");
 
-            var temaId = temaAneel.GetValue("catalogTemaId")?.Value<int?>();
+            var catalogTemaId = temaAneel.GetValue("catalogTemaId").ToString();
+            int temaId = String.IsNullOrEmpty(catalogTemaId) ? 0 : Int32.Parse(catalogTemaId);
             var temaOutro = temaAneel.GetValue("outroDesc")?.Value<string>();
             var subtemas = temaAneel.GetValue("subTemas") as JArray;
             var captacaoSubTemas = CaptacaoSubTemasFromJArray(subtemas);
@@ -442,7 +443,7 @@ namespace PeD.Services.Demandas
             {
                 DemandaId = id,
                 CriadorId = demanda.CriadorId,
-                TemaId = temaId,
+                TemaId = temaId > 0 ? temaId : (int?) null,
                 TemaOutro = temaOutro,
                 Titulo = demanda.Titulo,
                 Status = Captacao.CaptacaoStatus.Pendente,

@@ -110,7 +110,7 @@ namespace PeD.Data.Builders
                 new Empresa
                 {
                     Nome = "BRASNORTE",
-                    Valor = "06625",
+                    Valor = "07427",
                     Cnpj = "09.274.998/0001-97"
                 },
                 new Empresa
