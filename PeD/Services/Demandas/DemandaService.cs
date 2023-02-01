@@ -303,10 +303,11 @@ namespace PeD.Services.Demandas
                     demanda.TabelaValorHoraId = Int32.Parse(tabelaValorHoraId);
                 }
                 _context.SaveChanges();
+                var tabela = _tabelaService.Get(demanda.TabelaValorHoraId.Value);
                 var user = _context.Users.Find(superiorDiretoId);
                 LogService.Incluir(demanda.CriadorId, demanda.Id, "Definiu Superior Direto e Tabela de Valor/Hora",
                     string.Format(" {0} definiu o usuário {1} como superior direto e definiu a tabela: '{2}'", demanda.Criador.NomeCompleto,
-                        user.NomeCompleto, demanda.TabelaValorHora.Nome));
+                        user.NomeCompleto, tabela.Nome));
                 return;
             }
 
