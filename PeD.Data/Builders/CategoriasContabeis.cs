@@ -117,6 +117,12 @@ namespace PeD.Data.Builders
                 },
                 new CategoriaContabil
                 {
+                    Valor = "MP",
+                    Nome = "Materiais Permanentes e Equipamentos",
+                    Atividades = new List<CategoriaContabilAtividade>()
+                },
+                new CategoriaContabil
+                {
                     Valor = "OU",
                     Nome = "Outros",
                     Atividades = new List<CategoriaContabilAtividade>
