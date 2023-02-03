@@ -9,12 +9,12 @@ namespace PeD.Data.Builders
         {
             var tipos = new[]
             {
-                new ProdutoTipo("CD", "Componente ou Dispositivo"),
                 new ProdutoTipo("CM", "Conceito ou Metodologia"),
-                new ProdutoTipo("ME", "Máquina ou Equipamento"),
-                new ProdutoTipo("MS", "Material ou Substância"),
-                new ProdutoTipo("SM", "Sistema"),
                 new ProdutoTipo("SW", "Software")
+                new ProdutoTipo("SM", "Sistema"),
+                new ProdutoTipo("CD", "Componente ou Dispositivo"),
+                new ProdutoTipo("MS", "Material ou Substância"),
+                new ProdutoTipo("ME", "Máquina ou Equipamento"),
             };
             builder.HasData(tipos);
             return builder;
