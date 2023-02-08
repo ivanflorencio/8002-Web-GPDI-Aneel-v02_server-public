@@ -60,6 +60,10 @@ namespace PeD.Data
 
         #endregion
 
+        public DbSet<AnaliseTecnica> AnaliseTecnica { get; set; }
+        public DbSet<CriterioAvaliacao> CriterioAvaliacao { get; set; }
+        public DbSet<ParecerTecnico> ParecerTecnico { get; set; }
+
         //public DbSet<RegistroFinanceiro> RegistroFinanceiros { get; set; }
         //public DbSet<RegistroFinanceiroRh> RegistroFinanceirosRh { get; set; }
         //public DbSet<RegistroFinanceiroRm> RegistroFinanceirosRm { get; set; }

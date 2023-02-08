@@ -52,7 +52,7 @@ using TaesaCore.Services;
 using CaptacaoService = PeD.Services.Captacoes.CaptacaoService;
 using Log = Serilog.Log;
 using Path = System.IO.Path;
-
+using PeD.Services.Analises;
 
 namespace PeD
 {
@@ -216,6 +216,7 @@ namespace PeD
             services.AddTransient<RelatorioFinalService>();
             services.AddTransient<RelatorioAuditoriaService>();
             services.AddTransient<ProjetoPeDService>();
+            services.AddTransient<AnaliseTecnicaService>();
 
             #endregion
 

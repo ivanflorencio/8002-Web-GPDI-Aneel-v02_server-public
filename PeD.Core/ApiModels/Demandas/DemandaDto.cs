@@ -20,7 +20,7 @@ namespace PeD.Core.ApiModels.Demandas
         public DemandaStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CaptacaoDate { get; set; }
-        public List<DemandaComentarioDto> Comentarios { get; set; }
+        public List<DemandaComentarioDto> Comentarios { get; set; }        
     }
 
     public class DemandaFileDto : FileUploadDto
