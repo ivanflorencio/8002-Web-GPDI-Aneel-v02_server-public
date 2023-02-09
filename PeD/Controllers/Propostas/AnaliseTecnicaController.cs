@@ -34,10 +34,29 @@ namespace PeD.Controllers.Propostas
 
         [SwaggerOperation("Lista das propostas com análise pendente")]
         [HttpGet("/api/AnaliseTecnica/PropostasPendentes")]
-        public ActionResult<List<Proposta>> Index()
+        public ActionResult<List<PropostaAnaliseDto>> Index()
         {
+            var propostas = new List<PropostaAnaliseDto>();
             var pendentes = _analiseTecnicaService.GetPropostasAnaliseTecnicaPendente();
-            return Ok(pendentes);
+            foreach(var item in pendentes) {
+                var analise = _analiseTecnicaService.GetAnaliseTecnicaProposta(item.Id);
+                var status = "Pendente";
+                var responsavel = "";
+                if (analise != null) {
+                    status = analise.Status;
+                    responsavel = analise.Responsavel.NomeCompleto;
+                }
+                propostas.Add(new PropostaAnaliseDto {
+                    PropostaId = item.Id,
+                    DemandaId = item.Captacao.Demanda.Id,
+                    TituloDemanda = item.Captacao.Demanda.Titulo,
+                    DataHora = item.DataCriacao.ToString("dd/MM/yyyy"),
+                    Fornecedor = item.Fornecedor.Nome,
+                    StatusAnalise = status,
+                    AnalistaResponsavel = responsavel,
+                });
+            }
+            return Ok(propostas);
         }
 
         [SwaggerOperation("Salvar Critérios de Avaliação da Demanda")]
@@ -143,7 +162,5 @@ namespace PeD.Controllers.Propostas
             );
             return Ok();
         }
-
-
     }
 }

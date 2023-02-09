@@ -49,12 +49,15 @@ namespace PeD.Services.Analises
 
             var query = 
                 from proposta in propostas
-                where proposta.Participacao == StatusParticipacao.Concluido
+                where (
+                    proposta.Participacao == StatusParticipacao.Aceito
+                    || proposta.Participacao == StatusParticipacao.Concluido
+                )
                 && !(from analise in analises 
                         where analise.PropostaId == proposta.Id
                         && (
-                            analise.Status == "Aberta" 
-                            || analise.Status == "Pendente" 
+                            analise.Status != "Aberta" 
+                            && analise.Status != "Pendente" 
                         )
                         select analise.PropostaId).Contains(proposta.Id)
                 select proposta;
@@ -101,6 +104,7 @@ namespace PeD.Services.Analises
 
             return query
                 .Include(c => c.Pareceres)
+                .Include(r => r.Responsavel)
                 .Include(p => p.Proposta)
                 .ThenInclude(c => c.Captacao)
                 .FirstOrDefault();
