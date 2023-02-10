@@ -131,6 +131,7 @@ namespace PeD.Services.Analises
                     captacao.Status == CaptacaoStatus.Elaboracao ||
                     captacao.Status == CaptacaoStatus.Fornecedor ||
                     captacao.Status == CaptacaoStatus.Pendente ||
+                    captacao.Status == CaptacaoStatus.Encerrada ||
                     captacao.Status == CaptacaoStatus.Refinamento
                     )
                 select captacao.Demanda;
@@ -140,20 +141,34 @@ namespace PeD.Services.Analises
                 .ToList();
         }
 
-        public void SalvarCriterioAvaliacao(CriterioAvaliacao criterioAvaliacao)
+        public CriterioAvaliacao SalvarCriterioAvaliacao(CriterioAvaliacao criterioAvaliacao)
         {
             var criterios = _context.Set<CriterioAvaliacao>();
             
             if (criterioAvaliacao.Id > 0) {
                 var criterio = criterios.Where(x=>x.Id == criterioAvaliacao.Id).FirstOrDefault();
                 criterio.Descricao = criterioAvaliacao.Descricao;
-                criterio.Peso = criterio.Peso;
+                criterio.Peso = criterioAvaliacao.Peso;
                 criterios.Update(criterio);                
             } else {                
+                criterioAvaliacao.DataHora = DateTime.Now;
+                criterioAvaliacao.Guid = Guid.NewGuid();
                 criterios.Add(criterioAvaliacao);
             }
             
             _context.SaveChanges();
+
+            return criterioAvaliacao;
+        }
+
+        public void RemoverCriterioAvaliacao(int criterioId)
+        {
+            var criterios = _context.Set<CriterioAvaliacao>();
+            var criterio = criterios.First(x=>x.Id == criterioId);
+            if (criterio != null) {
+               criterios.Remove(criterio);
+               _context.SaveChanges();
+            }
         }
 
         public void SalvarAnaliseTecnica(AnaliseTecnica analiseTecnica)

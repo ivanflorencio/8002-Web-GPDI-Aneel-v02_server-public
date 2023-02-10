@@ -61,9 +61,9 @@ namespace PeD.Controllers.Propostas
 
         [SwaggerOperation("Salvar Critérios de Avaliação da Demanda")]
         [HttpPost("/api/AnaliseTecnica/CriteriosAvaliacao")]
-        public ActionResult SalvarCriterioAvaliacao(CriterioAvaliacaoRequest criterioAvaliacao)
+        public ActionResult<CriterioAvaliacao> SalvarCriterioAvaliacao(CriterioAvaliacaoRequest criterioAvaliacao)
         {
-            _analiseTecnicaService.SalvarCriterioAvaliacao(
+            var criterioSalvo = _analiseTecnicaService.SalvarCriterioAvaliacao(
                 new CriterioAvaliacao {
                     Id = criterioAvaliacao.CriterioId,
                     DemandaId = criterioAvaliacao.DemandaId,
@@ -73,8 +73,17 @@ namespace PeD.Controllers.Propostas
                     DoGestor = criterioAvaliacao.DoGestor
                 }
             );
+            return Ok(criterioSalvo);
+        }
+
+        [SwaggerOperation("Excluir Critérios de Avaliação da Demanda")]
+        [HttpDelete("/api/AnaliseTecnica/CriteriosAvaliacao/{criterioId:int}")]
+        public ActionResult RemoverCriterioAvaliacao(int criterioId)
+        {
+            _analiseTecnicaService.RemoverCriterioAvaliacao(criterioId);
             return Ok();
         }
+
 
         [SwaggerOperation("Lista dos Critérios de Avaliação das Demandas Pendentes")]
         [HttpGet("/api/AnaliseTecnica/CriteriosAvaliacao")]
@@ -139,7 +148,7 @@ namespace PeD.Controllers.Propostas
 
         [SwaggerOperation("Salvar Dados da Análise Técnica")]
         [HttpPost("/api/AnaliseTecnica")]
-        public ActionResult SalvarCriterioAvaliacao(AnaliseTecnicaRequest analiseTecnica)
+        public ActionResult SalvarPareceresAnaliseTecnica(AnaliseTecnicaRequest analiseTecnica)
         {
             var pareceres = new List<ParecerTecnico>();
             foreach (var item in analiseTecnica.Pareceres) {
