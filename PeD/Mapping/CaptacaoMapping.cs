@@ -38,6 +38,7 @@ namespace PeD.Mapping
                     .Count(p => p.Finalizado && p.Contrato.Finalizado)));
             CreateMap<Captacao, CaptacaoSelecaoFinalizadaDto>()
                 .ForMember(c => c.Proposta, opt => opt.MapFrom(src => src.PropostaSelecionada.Fornecedor.Nome))
+                .ForMember(c => c.PropostaId, opt => opt.MapFrom(src => src.PropostaSelecionada.Id))
                 .ForMember(c => c.Responsavel, opt => opt.MapFrom(src => src.UsuarioRefinamento.NomeCompleto))
                 .ForMember(c => c.ArquivoComprobatorio, o => o.MapFrom(s => s.ArquivoComprobatorio.FileName));
             CreateMap<Captacao, CaptacaoIdentificaoRiscosDto>()

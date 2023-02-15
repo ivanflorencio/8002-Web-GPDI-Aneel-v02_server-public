@@ -105,8 +105,9 @@ namespace PeD.Services.Analises
 
 
             return query
-                .Include(c => c.Pareceres)
                 .Include(r => r.Responsavel)
+                .Include(c => c.Pareceres)
+                .ThenInclude(r => r.Responsavel)
                 .Include(p => p.Proposta)
                 .ThenInclude(c => c.Captacao)
                 .FirstOrDefault();

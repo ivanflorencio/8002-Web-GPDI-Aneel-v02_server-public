@@ -7,6 +7,7 @@ namespace PeD.Core.ApiModels.Captacao
     {
         public string Titulo { get; set; }
         public string Proposta { get; set; }
+        public int PropostaId  { get; set; }
         public string Responsavel { get; set; }
         public DateTime DataAlvo { get; set; }
 

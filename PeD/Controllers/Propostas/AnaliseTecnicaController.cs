@@ -146,6 +146,7 @@ namespace PeD.Controllers.Propostas
             analise.PropostaId = propostaId;
             analise.Status = analiseTecnica?.Status ?? "Aberta";
             analise.Pareceres = pareceres;
+            analise.PontuacaoFinal = analiseTecnica.PontuacaoFinal;
         
             return Ok(analise);
         }
