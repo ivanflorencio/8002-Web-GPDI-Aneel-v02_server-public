@@ -12,5 +12,7 @@ namespace PeD.Core.ApiModels.Analises
         public int Peso { get; set; }        
         public string Justificativa { get; set; }        
         public int Pontuacao { get; set; }
+        public string AnalistaResponsavel{ get; set; }
+        public string DataHora {get; set; }
     }
 }

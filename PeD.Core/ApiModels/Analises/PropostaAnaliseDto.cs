@@ -12,6 +12,7 @@ namespace PeD.Core.ApiModels.Analises
         public string Fornecedor { get; set; }
         public string DataHora { get; set; }
         public string AnalistaResponsavel { get; set; }
-        public string StatusAnalise { get; set; }        
+        public string StatusAnalise { get; set; }  
+        public double Pontuacao { get; set; }
     }
 }

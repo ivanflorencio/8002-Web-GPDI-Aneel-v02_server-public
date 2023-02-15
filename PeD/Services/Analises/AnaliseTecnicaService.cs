@@ -57,7 +57,8 @@ namespace PeD.Services.Analises
                         where analise.PropostaId == proposta.Id
                         && (
                             analise.Status != "Aberta" 
-                            && analise.Status != "Pendente" 
+                            && analise.Status != "Pendente"
+                            && analise.Status != "Enviada"
                         )
                         select analise.PropostaId).Contains(proposta.Id)
                 select proposta;
@@ -98,6 +99,7 @@ namespace PeD.Services.Analises
                     && (
                         analise.Status == "Aberta"
                         || analise.Status == "Pendente"
+                        || analise.Status == "Enviada"
                     )
                 select analise;
 
@@ -111,6 +113,16 @@ namespace PeD.Services.Analises
         }
 
 
+        public List<CriterioAvaliacao> GetCriteriosAvaliacaoProposta(int propostaId)
+        {
+            var demandas = _context.Set<Proposta>().AsQueryable();
+            var demanda = demandas
+                                .Include(x=>x.Captacao)
+                                .ThenInclude(x=>x.Demanda)
+                                .First(x=>x.Id == propostaId)?.Captacao.Demanda;
+            return this.GetCriteriosAvaliacaoDemanda(demanda?.Id ?? 0);
+        }
+
         public List<CriterioAvaliacao> GetCriteriosAvaliacaoDemanda(int demandaId)
         {
             var query =
@@ -120,6 +132,7 @@ namespace PeD.Services.Analises
                 select criterio;
 
             return query
+                .Include(x => x.Responsavel)
                 .ToList();
         }
 
@@ -176,14 +189,12 @@ namespace PeD.Services.Analises
             var analises = _context.Set<AnaliseTecnica>();
             var pareceres = _context.Set<ParecerTecnico>();
             var analiseId = analiseTecnica.Id;
-            
-            // Adicionando informações (nao enviadas) aos pareceres da analise
-            foreach (var item in analiseTecnica.Pareceres)
-            {
-                item.ResponsavelId = analiseTecnica.ResponsavelId;
-                item.DataHora = DateTime.Now;   
-            }
 
+            foreach (var item in analiseTecnica.Pareceres) {
+                item.ResponsavelId = analiseTecnica.ResponsavelId;
+                item.DataHora = DateTime.Now;                    
+            }
+            
             // Caso seja um update
             if (analiseId > 0) {
                 var analise = _context.AnaliseTecnica.First(x=>x.Id == analiseId);
@@ -200,7 +211,13 @@ namespace PeD.Services.Analises
                 pareceres.RemoveRange(pareceres.Where(x=>x.AnaliseTecnicaId == analiseId));
                 _context.SaveChanges();                
 
-                foreach (var item in analiseTecnica.Pareceres) item.AnaliseTecnicaId = analiseTecnica.Id;
+                // Adicionando informações (nao enviadas) aos pareceres da analise
+                foreach (var item in analiseTecnica.Pareceres) {
+                    item.Id = 0;
+                    item.ResponsavelId = analiseTecnica.ResponsavelId;
+                    item.DataHora = DateTime.Now;
+                    item.AnaliseTecnicaId = analiseTecnica.Id;
+                }
                 pareceres.AddRange(analiseTecnica.Pareceres);
                 _context.SaveChanges();
 
@@ -218,9 +235,7 @@ namespace PeD.Services.Analises
         public void EnviarAnaliseTecnica(AnaliseTecnica analiseTecnica)
         {
             analiseTecnica.Status = "Enviada";
-            this.SalvarAnaliseTecnica(analiseTecnica);
-
-            throw new NotImplementedException();
+            this.SalvarAnaliseTecnica(analiseTecnica);            
         }
     }
 }

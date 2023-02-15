@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PeD.Core.ApiModels.Analises;
-using PeD.Core.ApiModels.Propostas;
-using PeD.Core.Models;
 using PeD.Core.Models.Propostas;
 using PeD.Core.Requests.Analises;
-using PeD.Core.Requests.Proposta;
 using PeD.Services.Analises;
 using PeD.Services.Captacoes;
 using Swashbuckle.AspNetCore.Annotations;
-using TaesaCore.Interfaces;
 using System.Linq;
 
 namespace PeD.Controllers.Propostas
@@ -42,9 +37,11 @@ namespace PeD.Controllers.Propostas
                 var analise = _analiseTecnicaService.GetAnaliseTecnicaProposta(item.Id);
                 var status = "Pendente";
                 var responsavel = "";
+                double pontuacao = 0;
                 if (analise != null) {
                     status = analise.Status;
                     responsavel = analise.Responsavel.NomeCompleto;
+                    pontuacao = analise.PontuacaoFinal;
                 }
                 propostas.Add(new PropostaAnaliseDto {
                     PropostaId = item.Id,
@@ -54,6 +51,7 @@ namespace PeD.Controllers.Propostas
                     Fornecedor = item.Fornecedor.Nome,
                     StatusAnalise = status,
                     AnalistaResponsavel = responsavel,
+                    Pontuacao = pontuacao,
                 });
             }
             return Ok(propostas);
@@ -109,7 +107,7 @@ namespace PeD.Controllers.Propostas
         {
 
             var analiseTecnica = _analiseTecnicaService.GetAnaliseTecnicaProposta(propostaId);
-            var criteriosAvaliacao = _analiseTecnicaService.GetCriteriosAvaliacaoDemanda(analiseTecnica.Proposta.Captacao.DemandaId);
+            var criteriosAvaliacao = _analiseTecnicaService.GetCriteriosAvaliacaoProposta(propostaId);
 
             var pareceres = new List<ParecerTecnicoDto>();
             foreach (var item in criteriosAvaliacao)
@@ -117,12 +115,16 @@ namespace PeD.Controllers.Propostas
                 var parecerId = 0;
                 var justificativa = "";
                 var pontuacao = 0;
-                if (analiseTecnica.Pareceres.Count() > 0 ) {
+                var analistaResponsavel = "";
+                var dataHora = "";
+                if (analiseTecnica != null && analiseTecnica.Pareceres.Count() > 0 ) {
                     var parecer = analiseTecnica.Pareceres.Where(x=>x.CriterioId == item.Id).First();
                     if (parecer != null) {
                         parecerId = parecer.Id;
                         justificativa = parecer.Justificativa;
                         pontuacao = parecer.Pontuacao;
+                        analistaResponsavel = parecer.Responsavel.NomeCompleto;
+                        dataHora = parecer.DataHora.ToString("dd/MM/yyyy H:i");
                     }
                 }
                 pareceres.Add(new ParecerTecnicoDto() {
@@ -131,16 +133,18 @@ namespace PeD.Controllers.Propostas
                     DescricaoCriterio = item.Descricao,
                     Id = parecerId,
                     Justificativa = justificativa,
-                    Pontuacao = pontuacao,
+                    Pontuacao = pontuacao,       
+                    AnalistaResponsavel = analistaResponsavel,     
+                    DataHora = dataHora,
                 });
             }
 
             var analise = new AnaliseTecnicaDto();
-            analise.Id = analiseTecnica.Id;
-            analise.Comentarios = analiseTecnica.Comentarios;
-            analise.Justificativa = analiseTecnica.Justificativa;
-            analise.PropostaId = analiseTecnica.PropostaId;
-            analise.Status = analiseTecnica.Status;
+            analise.Id = analiseTecnica?.Id ?? 0;
+            analise.Comentarios = analiseTecnica?.Comentarios ?? "";
+            analise.Justificativa = analiseTecnica?.Justificativa ?? "";
+            analise.PropostaId = propostaId;
+            analise.Status = analiseTecnica?.Status ?? "Aberta";
             analise.Pareceres = pareceres;
         
             return Ok(analise);
@@ -153,12 +157,40 @@ namespace PeD.Controllers.Propostas
             var pareceres = new List<ParecerTecnico>();
             foreach (var item in analiseTecnica.Pareceres) {
                 pareceres.Add(new ParecerTecnico {
+                    Id = item.ParecerId,
                     Pontuacao = item.Pontuacao,
                     Justificativa = item.Justificativa,
                     CriterioId = item.CriterioId,
                 });
             }
             _analiseTecnicaService.SalvarAnaliseTecnica(
+                new AnaliseTecnica {
+                    Id = analiseTecnica.Id,
+                    Comentarios = analiseTecnica.Comentarios,
+                    Justificativa = analiseTecnica.Justificativa,
+                    PontuacaoFinal = analiseTecnica.PontuacaoFinal,
+                    PropostaId = analiseTecnica.PropostaId,
+                    ResponsavelId = this.UserId(),
+                    Pareceres = pareceres
+                }
+            );
+            return Ok();
+        }
+
+        [SwaggerOperation("Enviar da Análise Técnica Finalizada")]
+        [HttpPost("/api/AnaliseTecnica/Enviar")]
+        public ActionResult EnviarAnaliseTecnica(AnaliseTecnicaRequest analiseTecnica)
+        {
+            var pareceres = new List<ParecerTecnico>();
+            foreach (var item in analiseTecnica.Pareceres) {
+                pareceres.Add(new ParecerTecnico {
+                    Id = item.ParecerId,
+                    Pontuacao = item.Pontuacao,
+                    Justificativa = item.Justificativa,
+                    CriterioId = item.CriterioId,
+                });
+            }
+            _analiseTecnicaService.EnviarAnaliseTecnica(
                 new AnaliseTecnica {
                     Id = analiseTecnica.Id,
                     Comentarios = analiseTecnica.Comentarios,
