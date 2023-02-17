@@ -45,6 +45,7 @@ namespace PeD.Controllers.Propostas
                 }
                 propostas.Add(new PropostaAnaliseDto {
                     PropostaId = item.Id,
+                    CaptacaoId = item.CaptacaoId,
                     DemandaId = item.Captacao.Demanda.Id,
                     TituloDemanda = item.Captacao.Demanda.Titulo,
                     DataHora = item.DataCriacao.ToString("dd/MM/yyyy"),
@@ -117,8 +118,12 @@ namespace PeD.Controllers.Propostas
                 var pontuacao = 0;
                 var analistaResponsavel = "";
                 var dataHora = "";
-                if (analiseTecnica != null && analiseTecnica.Pareceres.Count() > 0 ) {
-                    var parecer = analiseTecnica.Pareceres.Where(x=>x.CriterioId == item.Id).First();
+                if (
+                        analiseTecnica != null 
+                        && analiseTecnica.Pareceres.Count() > 0 
+                        && analiseTecnica.Pareceres.Any(x=>x.CriterioId == item.Id) 
+                    ) {
+                    var parecer = analiseTecnica.Pareceres.First(x=>x.CriterioId == item.Id);
                     if (parecer != null) {
                         parecerId = parecer.Id;
                         justificativa = parecer.Justificativa;
@@ -146,7 +151,7 @@ namespace PeD.Controllers.Propostas
             analise.PropostaId = propostaId;
             analise.Status = analiseTecnica?.Status ?? "Aberta";
             analise.Pareceres = pareceres;
-            analise.PontuacaoFinal = analiseTecnica.PontuacaoFinal;
+            analise.PontuacaoFinal = analiseTecnica?.PontuacaoFinal ?? 0;
         
             return Ok(analise);
         }

@@ -9,6 +9,7 @@ namespace PeD.Core.ApiModels.Analises
         public int DemandaId { get; set; }
         public string TituloDemanda { get; set; }
         public int PropostaId { get; set; }
+        public int CaptacaoId { get; set; }
         public string Fornecedor { get; set; }
         public string DataHora { get; set; }
         public string AnalistaResponsavel { get; set; }
