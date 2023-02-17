@@ -217,6 +217,7 @@ namespace PeD
             services.AddTransient<RelatorioAuditoriaService>();
             services.AddTransient<ProjetoPeDService>();
             services.AddTransient<AnaliseTecnicaService>();
+            services.AddTransient<AnalisePedService>();
 
             #endregion
 

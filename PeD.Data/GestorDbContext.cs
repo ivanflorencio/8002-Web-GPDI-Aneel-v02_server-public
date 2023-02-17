@@ -61,6 +61,7 @@ namespace PeD.Data
         #endregion
 
         public DbSet<AnaliseTecnica> AnaliseTecnica { get; set; }
+        public DbSet<AnalisePed> AnalisePed { get; set; }
         public DbSet<CriterioAvaliacao> CriterioAvaliacao { get; set; }
         public DbSet<ParecerTecnico> ParecerTecnico { get; set; }
 

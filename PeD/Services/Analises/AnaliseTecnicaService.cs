@@ -70,26 +70,6 @@ namespace PeD.Services.Analises
                 .ToList();
         }
 
-        public List<Proposta> GetPropostasAnaliseTecnicaConcluida()
-        {
-             var analises = _context.Set<AnaliseTecnica>().AsQueryable();
-            var propostas = _context.Set<Proposta>().AsQueryable();
-
-            var query = 
-                from proposta in propostas
-                where proposta.Participacao == StatusParticipacao.Concluido
-                && (from analise in analises 
-                        where analise.PropostaId == proposta.Id && analise.Status == "Enviada"
-                        select analise.PropostaId).Contains(proposta.Id)
-                select proposta;
-            
-            return query.Include(c => c.Captacao)
-                .ThenInclude(d => d.Demanda)
-                .Include(f=>f.Fornecedor)
-                .Distinct()
-                .ToList();
-        }
-
         public AnaliseTecnica GetAnaliseTecnicaProposta(int propostaId)
         {
             var query =
