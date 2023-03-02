@@ -15,6 +15,8 @@ namespace PeD.Mapping
                 .ForMember(dest => dest.Criador, opt => opt.MapFrom(src => src.Criador.NomeCompleto))
                 .ForMember(dest => dest.Revisor, opt => opt.MapFrom(src => src.Revisor.NomeCompleto))
                 .ForMember(dest => dest.SuperiorDireto, opt => opt.MapFrom(src => src.SuperiorDireto.NomeCompleto))
+                .ForMember(dest => dest.AnalistaTecnico, opt => opt.MapFrom(src => src.AnalistaTecnico.NomeCompleto))
+                .ForMember(dest => dest.AnalistaPed, opt => opt.MapFrom(src => src.AnalistaPed.NomeCompleto))
                 ;
             CreateMap<DemandaFormValues, DemandaFormValuesDto>()
                 .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Object));

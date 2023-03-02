@@ -22,6 +22,7 @@ using PeD.Core.Models.Captacoes;
 using PeD.Core.Requests.Captacao;
 using PeD.Data;
 using PeD.Services;
+using PeD.Services.Analises;
 using PeD.Services.Captacoes;
 using PeD.Services.Projetos;
 using Swashbuckle.AspNetCore.Annotations;
@@ -43,10 +44,13 @@ namespace PeD.Controllers.Captacoes
         private new CaptacaoService Service;
         private ILogger<CaptacaoController> _logger;
         private UserService _userService;
+        private AnalisePedService _analisePedService;
+        private AnaliseTecnicaService _analiseTecService;
 
         public CaptacaoController(CaptacaoService service, IMapper mapper, UserManager<ApplicationUser> userManager,
             IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor,
-            IService<CaptacaoInfo> serviceInfo, ILogger<CaptacaoController> logger, UserService userService)
+            IService<CaptacaoInfo> serviceInfo, ILogger<CaptacaoController> logger, UserService userService, 
+            AnalisePedService analisePedService, AnaliseTecnicaService analiseTecService)
             : base(service, mapper)
         {
             _urlHelper = urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
@@ -54,6 +58,8 @@ namespace PeD.Controllers.Captacoes
             _serviceInfo = serviceInfo;
             _logger = logger;
             _userService = userService;
+            _analisePedService = analisePedService;
+            _analiseTecService = analiseTecService;
             Service = service;
         }
 
@@ -290,17 +296,26 @@ namespace PeD.Controllers.Captacoes
                             //c.UsuarioSuprimentoId == this.UserId() &&
                             c.Id == id
                 )).FirstOrDefault();
-            if (captacao == null)
-            {
-                return NotFound();
-            }
 
+            if (captacao == null)  return NotFound();
+            
             var propostas = propostaService.Filter(q =>
                 q.Include(p => p.Contrato)
                     .Include(p => p.Fornecedor)
                     .Where(p => p.Finalizado && p.CaptacaoId == id && p.Contrato != null));
 
-            return Mapper.Map<List<PropostaSelecaoDto>>(propostas);
+
+            var propostasDto = Mapper.Map<List<PropostaSelecaoDto>>(propostas);
+
+            if (captacao.Status == Captacao.CaptacaoStatus.Encerrada) {
+                foreach (var proposta in propostasDto)
+                {
+                    proposta.AnalisePedFinalizada = _analisePedService.VerificarAnalisePedFinalizada(proposta.Id);
+                    proposta.AnaliseTecnicaFinalizada = _analiseTecService.VerificarAnaliseTecnicaFinalizada(proposta.Id);
+                }                
+            }
+
+            return propostasDto;
         }
 
         [Authorize(Policy = Policies.IsUserPeD)]

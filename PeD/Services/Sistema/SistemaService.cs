@@ -68,6 +68,8 @@ namespace PeD.Services.Sistema
             {
                 Diretor = _mapper.Map<ApplicationUserDto>(context.Users.FirstOrDefault(u => u.Id == equipe.Diretor)),
                 Gerente = _mapper.Map<ApplicationUserDto>(context.Users.FirstOrDefault(u => u.Id == equipe.Gerente)),
+                AnalistasTecnicos = _mapper.Map<List<ApplicationUserDto>>(context.Users.Where(u => u.Role == Roles.AnalistaTecnico)),
+                AnalistasPed = _mapper.Map<List<ApplicationUserDto>>(context.Users.Where(u => u.Role == Roles.AnalistaPed)),
                 Coordenador =
                     _mapper.Map<ApplicationUserDto>(context.Users.FirstOrDefault(u => u.Id == equipe.Coordenador)),
                 Outros = _mapper.Map<List<ApplicationUserDto>>(context.Users.Where(u => equipe.Outros.Contains(u.Id)))

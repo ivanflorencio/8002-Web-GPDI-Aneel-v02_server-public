@@ -46,7 +46,10 @@ namespace PeD.Core.Models.Demandas
         public ApplicationUser Criador { get; set; }
         public string SuperiorDiretoId { get; set; }
         public ApplicationUser SuperiorDireto { get; set; }
-
+        public string AnalistaTecnicoId { get; set; }
+        public ApplicationUser AnalistaTecnico { get; set; }
+        public string AnalistaPedId { get; set; }
+        public ApplicationUser AnalistaPed { get; set; }
         public string RevisorId { get; set; }
         public ApplicationUser Revisor { get; set; }
         public DemandaEtapa EtapaAtual { get; set; }

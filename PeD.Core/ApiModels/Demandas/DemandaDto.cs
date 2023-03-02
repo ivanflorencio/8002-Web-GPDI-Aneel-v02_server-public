@@ -13,6 +13,10 @@ namespace PeD.Core.ApiModels.Demandas
         public string Criador { get; set; }
         public string SuperiorDiretoId { get; set; }
         public string SuperiorDireto { get; set; }
+        public string AnalistaTecnicoId { get; set; }
+        public string AnalistaTecnico { get; set; }
+        public string AnalistaPedId { get; set; }
+        public string AnalistaPed { get; set; }
         public string RevisorId { get; set; }
         public string Revisor { get; set; }
         public DemandaEtapa EtapaAtual { get; set; }

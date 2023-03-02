@@ -78,7 +78,7 @@ namespace PeD.Controllers.Demandas
                 return NotFound();
             }
 
-            DemandaService.SetSuperiorDireto(id, request.SuperiorDireto, request.TabelaValorHoraId);
+            DemandaService.SetSuperiorDireto(id, request.SuperiorDireto, request.TabelaValorHoraId, request.AnalistaPedId, request.AnalistaTecnicoId);
 
             return Ok();
         }
@@ -89,6 +89,8 @@ namespace PeD.Controllers.Demandas
             var dadosDemanda = DemandaService.GetById(id);
             return dadosDemanda != null ? new {
                     superiorDireto = dadosDemanda.SuperiorDiretoId,
+                    analistaTecnico = dadosDemanda.AnalistaTecnicoId,
+                    analistaPed = dadosDemanda.AnalistaPedId,
                     tabelaValorHora = dadosDemanda.TabelaValorHora?.Id,
                 } : null;
             

@@ -11,7 +11,8 @@ namespace PeD.Core.ApiModels.Propostas
         public short Duracao { get; set; }
         public bool ContratoFinalizado { get; set; }
         public bool PlanoFinalizado { get; set; }
-
+        public bool AnaliseTecnicaFinalizada { get; set; } = false;
+        public bool AnalisePedFinalizada { get; set; } = false;
         public DateTime DataCriacao { get; set; }
         public DateTime? DataTermino { get; set; }
         public DateTime? DataResposta { get; set; }

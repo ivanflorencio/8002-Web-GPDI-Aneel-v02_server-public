@@ -10,6 +10,7 @@ namespace PeD.Core.Models
         public const string Fornecedor = "Fornecedor";
         public const string Colaborador = "Colaborador";
         public const string AnalistaTecnico = "AnalistaTecnico";
+        public const string AnalistaPed = "AnalistaPed";
 
         protected static List<string> _allRoles = new List<string>
         {
@@ -17,6 +18,7 @@ namespace PeD.Core.Models
             User,
             Colaborador,
             AnalistaTecnico,
+            AnalistaPed,
             Suprimento,
             Fornecedor
         };

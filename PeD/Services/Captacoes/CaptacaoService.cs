@@ -10,6 +10,7 @@ using PeD.Core.Models.Captacoes;
 using PeD.Core.Models.Fornecedores;
 using PeD.Core.Models.Propostas;
 using PeD.Data;
+using PeD.Services.Demandas;
 using PeD.Views.Email.Captacao;
 using PeD.Views.Email.Captacao.Propostas;
 using TaesaCore.Interfaces;
@@ -24,6 +25,7 @@ namespace PeD.Services.Captacoes
         private ILogger<CaptacaoService> _logger;
         private SendGridService _sendGridService;
         private GestorDbContext _context;
+        private DemandaService _demandaService;
         private DbSet<CaptacaoArquivo> _captacaoArquivos;
         private DbSet<CaptacaoFornecedor> _captacaoFornecedors;
         private DbSet<Proposta> _captacaoPropostas;
@@ -64,7 +66,7 @@ namespace PeD.Services.Captacoes
         };
 
         public CaptacaoService(IRepository<Captacao> repository, GestorDbContext context,
-            SendGridService sendGridService, ILogger<CaptacaoService> logger, PropostaService propostaService,
+            SendGridService sendGridService, ILogger<CaptacaoService> logger, DemandaService demandaService, PropostaService propostaService,
             IMapper mapper) : base(repository)
         {
             _context = context;
@@ -73,6 +75,7 @@ namespace PeD.Services.Captacoes
             _captacaoArquivos = context.Set<CaptacaoArquivo>();
             _captacaoFornecedors = context.Set<CaptacaoFornecedor>();
             _captacaoPropostas = context.Set<Proposta>();
+            _demandaService = demandaService;
         }
 
         protected void ThrowIfNotExist(int id)
@@ -444,6 +447,7 @@ namespace PeD.Services.Captacoes
 
         public void EncerrarCaptacoesExpiradas()
         {
+           
             var expiradas = Filter(q =>
                     q.Include(c => c.Propostas)
                         .ThenInclude(p => p.Contrato)
@@ -460,6 +464,11 @@ namespace PeD.Services.Captacoes
                 {
                     expirada.Cancelamento = DateTime.Now;
                 }
+
+                // Notificando analistas responsáveis
+                _demandaService.NotificarAnalistaPed(expirada.Demanda, true);
+                _demandaService.NotificarAnalistaTecnico(expirada.Demanda, true);
+                
             }
 
             Put(expiradas);

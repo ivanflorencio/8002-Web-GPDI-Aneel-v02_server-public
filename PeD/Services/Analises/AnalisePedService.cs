@@ -60,6 +60,7 @@ namespace PeD.Services.Analises
             
             return query.Include(c => c.Captacao)
                 .ThenInclude(d => d.Demanda)
+                .ThenInclude(d => d.AnalistaPed)
                 .Include(f=>f.Fornecedor)
                 .Distinct()
                 .ToList();
@@ -83,6 +84,8 @@ namespace PeD.Services.Analises
                 .Include(r => r.Responsavel)
                 .Include(p => p.Proposta)
                 .ThenInclude(c => c.Captacao)
+                .ThenInclude(c => c.Demanda)
+                .ThenInclude(c => c.AnalistaPed)
                 .FirstOrDefault();
         }
 
@@ -132,6 +135,11 @@ namespace PeD.Services.Analises
         {
             analisePed.Status = "Enviada";
             this.SalvarAnalisePed(analisePed);            
+        }
+
+        internal bool VerificarAnalisePedFinalizada(int propostaId)
+        {
+            return _context.AnalisePed.Any(x=>x.PropostaId == propostaId && x.Status == "Enviada");
         }
     }
 }

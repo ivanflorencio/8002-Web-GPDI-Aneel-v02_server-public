@@ -36,7 +36,7 @@ namespace PeD.Controllers.Propostas
             foreach(var item in pendentes) {
                 var analise = _analisePedService.GetAnalisePedProposta(item.Id);
                 var status = "Pendente";
-                var responsavel = "";
+                var responsavel = item.Captacao.Demanda.AnalistaPed?.NomeCompleto;
                 double pontuacao = 0;
                 if (analise != null) {
                     status = analise.Status;

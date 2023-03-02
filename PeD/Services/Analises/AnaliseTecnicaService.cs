@@ -65,6 +65,7 @@ namespace PeD.Services.Analises
             
             return query.Include(c => c.Captacao)
                 .ThenInclude(d => d.Demanda)
+                .ThenInclude(d => d.AnalistaTecnico)
                 .Include(f=>f.Fornecedor)
                 .Distinct()
                 .ToList();
@@ -217,6 +218,11 @@ namespace PeD.Services.Analises
         {
             analiseTecnica.Status = "Enviada";
             this.SalvarAnaliseTecnica(analiseTecnica);            
+        }
+
+        internal bool VerificarAnaliseTecnicaFinalizada(int propostaId)
+        {
+            return _context.AnaliseTecnica.Any(x=>x.PropostaId == propostaId && x.Status == "Enviada");
         }
     }
 }

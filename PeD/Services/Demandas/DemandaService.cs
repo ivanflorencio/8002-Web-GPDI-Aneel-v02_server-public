@@ -108,6 +108,8 @@ namespace PeD.Services.Demandas
                 .Include("Criador")
                 .Include("Revisor")
                 .Include("SuperiorDireto")
+                .Include("AnalistaPed")
+                .Include("AnalistaTecnico")
                 .Include("Comentarios.User")
                 .FirstOrDefault(d => d.Id == id);
         }
@@ -292,22 +294,51 @@ namespace PeD.Services.Demandas
             }
         }
 
-        public void SetSuperiorDireto(int id, string superiorDiretoId, string tabelaValorHoraId)
+        public void SetSuperiorDireto(int id, string superiorDiretoId, string tabelaValorHoraId, string analistaPedId, string analistaTecnicoId)
         {
             if (DemandaExist(id))
             {
                 var demanda = GetById(id);
+                var novoAnalistaTecnico = demanda.AnalistaTecnicoId != analistaTecnicoId;
+                var novoAnalistaPed = demanda.AnalistaPedId != analistaPedId;
+
+                // Definindo o superior
                 demanda.SuperiorDiretoId = superiorDiretoId;
+
+                // Definindo analistas responsáveis
+                if (novoAnalistaPed) {
+                    demanda.AnalistaPedId = analistaPedId;                    
+                }
+                if (novoAnalistaTecnico) {
+                    demanda.AnalistaTecnicoId = analistaTecnicoId;                    
+                }
+
+                // Definindo tabela de valor Hora Homem da demanda
                 if (tabelaValorHoraId != null)
                 {
                     demanda.TabelaValorHoraId = Int32.Parse(tabelaValorHoraId);
                 }
                 _context.SaveChanges();
+
+                //Notificando analistas
+                if (novoAnalistaPed) {
+                    NotificarAnalistaPed(demanda);
+                }
+                if (novoAnalistaTecnico) {
+                    NotificarAnalistaTecnico(demanda);
+                }
+
+                
                 var tabela = _tabelaService.Get(demanda.TabelaValorHoraId.Value);
                 var user = _context.Users.Find(superiorDiretoId);
                 LogService.Incluir(demanda.CriadorId, demanda.Id, "Definiu Superior Direto e Tabela de Valor/Hora",
                     string.Format(" {0} definiu o usuário {1} como superior direto e definiu a tabela: '{2}'", demanda.Criador.NomeCompleto,
                         user.NomeCompleto, tabela.Nome));
+
+                
+
+
+
                 return;
             }
 
@@ -783,13 +814,16 @@ namespace PeD.Services.Demandas
                     case DemandaEtapa.RevisorPendente:
                         NotificarRevisorPendente(demanda);
                         break;
+
                     case DemandaEtapa.AprovacaoRevisor:
                         NotificarRevisor(demanda);
                         break;
+
                     case DemandaEtapa.AprovacaoCoordenador:
                     case DemandaEtapa.AprovacaoGerente:
                         NotificarAprovador(demanda, userId);
                         break;
+
                     case DemandaEtapa.AprovacaoDiretor:
                         if (demanda.Status != DemandaStatus.Aprovada)
                             NotificarAprovador(demanda, userId);
@@ -812,6 +846,40 @@ namespace PeD.Services.Demandas
             _sendGridService.Send(demanda.SuperiorDireto.Email, titulo, body,
                 actionLabel: "Ver Demanda",
                 actionUrl: $"{url}/demandas/{demanda.Id}").Wait();
+        }
+
+        public void NotificarAnalistaTecnico(Demanda demanda, bool isFimCaptacao = false)
+        {
+            var url = Configuration.GetValue<string>("Url");
+            var titulo = $"Demanda para Análise Técnica:\"{demanda.Titulo}\"";
+            var body =
+                $"O usuário {demanda.Criador.NomeCompleto} atribuiu as propostas da demanda \"{demanda.Titulo}\" para que você faça a Análise Técnica. Clique abaixo para mais detalhes.";
+
+            if (isFimCaptacao) {
+                body =
+                $"A demanda \"{demanda.Titulo}\" está com a captação finalizada. Verifique se existem propostas com Análise Técnica pendentes ou abertas. Clique abaixo para mais detalhes.";
+            }
+
+            _sendGridService.Send(demanda.AnalistaPed.Email, titulo, body,
+                actionLabel: "Análise Técnica",
+                actionUrl: $"{url}/analise-tecnica").Wait();
+        }
+
+        public void NotificarAnalistaPed(Demanda demanda, bool isFimCaptacao = false)
+        {
+            var url = Configuration.GetValue<string>("Url");
+            var titulo = $"Demanda para Análise P&D:\"{demanda.Titulo}\"";
+            var body =
+                $"O usuário {demanda.Criador.NomeCompleto} atribuiu as propostas da demanda \"{demanda.Titulo}\" para que você faça a Análise P&D. Clique abaixo para mais detalhes.";
+            
+            if (isFimCaptacao) {
+                body =
+                $"A demanda \"{demanda.Titulo}\" está com a captação finalizada. Verifique se existem propostas com Análise P&D pendentes ou abertas. Clique abaixo para mais detalhes.";
+            }
+            
+            _sendGridService.Send(demanda.AnalistaPed.Email, titulo, body,
+                actionLabel: "Análise P&D",
+                actionUrl: $"{url}/analise-ped").Wait();
         }
 
         public void NotificarReprovacao(Demanda demanda, ApplicationUser avaliador)
