@@ -61,9 +61,8 @@ namespace PeD.Controllers.Propostas
 
             if (!_context.Set<Empresa>().Any(e => e.Id == request.EmpresaFinanciadoraId && e.PropostaId == Proposta.Id))
                 return ValidationProblem("Empresa Inválida");
-            if (empresa is { Funcao: Funcao.Cooperada } && request.HoraMeses.Any(kv => kv.Value > 160) ||
-                empresa is { Funcao: Funcao.Executora } && request.HoraMeses.Any(kv => kv.Value > 172))
-                return ValidationProblem("Quantidade de horas limite por mês não permitida");
+            if (_context.Set<AlocacaoRh>().Any(x=>x.EtapaId==request.EtapaId && x.RecursoId == request.RecursoId && x.Id != request.Id))
+                return ValidationProblem("Recurso Humano já cadastrado nessa etapa, mude a etapa ou altere o registro já existente.");
             return null;
         }
 
