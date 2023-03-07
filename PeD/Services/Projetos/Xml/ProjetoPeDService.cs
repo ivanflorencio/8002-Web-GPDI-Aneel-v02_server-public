@@ -49,7 +49,7 @@ namespace PeD.Services.Projetos.Xml
                 Duracao = projeto.Duracao,
                 Titulo = projeto.Titulo,
                 Segmento = projeto.SegmentoId,
-                CodTema = projeto.Tema.Valor,
+                CodTema = projeto.Tema?.Valor,
                 OutroTema = projeto.TemaOutro,
                 Subtemas = new SubTemas()
                 {

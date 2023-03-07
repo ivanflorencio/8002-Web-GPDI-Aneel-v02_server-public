@@ -10,10 +10,6 @@ namespace PeD.Core.Models.Projetos
 
         public int EmpresaFinanciadoraId { get; set; }
         public Empresa EmpresaFinanciadora { get; set; }
-        public int RecursoHumanoId { get; set; }
-        public RecursoHumano RecursoHumano { get; set; }
-        public int RecursoMaterialId { get; set; }
-        public RecursoMaterial RecursoMaterial { get; set; }
         public string Justificativa { get; set; }
         [NotMapped] public virtual decimal Custo { get; set; }
     }

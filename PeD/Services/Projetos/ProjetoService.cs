@@ -221,6 +221,7 @@ namespace PeD.Services.Projetos
                     a.EmpresaFinanciadoraId = empresasCopy[a.EmpresaFinanciadoraId];
                     a.EmpresaRecebedoraId = empresasCopy[a.EmpresaRecebedoraId];
                 });
+
             SaveXml(projeto.Id, "1",
                 new InicioExecucao(projeto.Codigo, projeto.DataInicioProjeto,
                     compartilhamento.ToString()));

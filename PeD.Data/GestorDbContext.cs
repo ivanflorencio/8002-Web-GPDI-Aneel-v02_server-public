@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PeD.Core.Models;
 using PeD.Core.Models.Captacoes;
@@ -69,10 +70,21 @@ namespace PeD.Data
         //public DbSet<RegistroFinanceiroRh> RegistroFinanceirosRh { get; set; }
         //public DbSet<RegistroFinanceiroRm> RegistroFinanceirosRm { get; set; }
 
+        ILoggerFactory _loggerFactory;
+
         #endregion
 
-        public GestorDbContext(DbContextOptions<GestorDbContext> options) : base(options)
+        public GestorDbContext(DbContextOptions<GestorDbContext> options, ILoggerFactory loggerFactory) : base(options)
         {
+            _loggerFactory = loggerFactory;
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder builder)
+        {
+            #if DEBUG
+            builder.UseLoggerFactory(_loggerFactory);
+            builder.EnableSensitiveDataLogging();
+            #endif
         }
 
 
