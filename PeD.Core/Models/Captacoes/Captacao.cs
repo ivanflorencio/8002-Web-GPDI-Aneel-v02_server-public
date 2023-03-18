@@ -38,6 +38,9 @@ namespace PeD.Core.Models.Captacoes
         public int? ContratoSugeridoId { get; set; }
         public Contrato ContratoSugerido { get; set; }
 
+        public int? RelatorioDiretoriaId { get; set; }
+        public Contrato RelatorioDiretoria { get; set; }
+
         public int? ContratoId { get; set; }
         [ForeignKey("ContratoId")] public Contrato Contrato { get; set; }
 

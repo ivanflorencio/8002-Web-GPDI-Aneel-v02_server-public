@@ -319,15 +319,6 @@ namespace PeD.Services.Demandas
                     demanda.TabelaValorHoraId = Int32.Parse(tabelaValorHoraId);
                 }
                 _context.SaveChanges();
-
-                //Notificando analistas
-                if (novoAnalistaPed) {
-                    NotificarAnalistaPed(demanda);
-                }
-                if (novoAnalistaTecnico) {
-                    NotificarAnalistaTecnico(demanda);
-                }
-
                 
                 var tabela = _tabelaService.Get(demanda.TabelaValorHoraId.Value);
                 var user = _context.Users.Find(superiorDiretoId);
@@ -336,8 +327,14 @@ namespace PeD.Services.Demandas
                         user.NomeCompleto, tabela.Nome));
 
                 
-
-
+                //Notificando analistas
+                demanda = GetById(id);
+                if (novoAnalistaPed) {
+                    NotificarAnalistaPed(demanda);
+                }
+                if (novoAnalistaTecnico) {
+                    NotificarAnalistaTecnico(demanda);
+                }
 
                 return;
             }
@@ -850,6 +847,8 @@ namespace PeD.Services.Demandas
 
         public void NotificarAnalistaTecnico(Demanda demanda, bool isFimCaptacao = false)
         {
+            if (demanda == null) return;
+            
             var url = Configuration.GetValue<string>("Url");
             var titulo = $"Demanda para Análise Técnica:\"{demanda.Titulo}\"";
             var body =
@@ -867,6 +866,8 @@ namespace PeD.Services.Demandas
 
         public void NotificarAnalistaPed(Demanda demanda, bool isFimCaptacao = false)
         {
+            if (demanda == null) return;
+
             var url = Configuration.GetValue<string>("Url");
             var titulo = $"Demanda para Análise P&D:\"{demanda.Titulo}\"";
             var body =

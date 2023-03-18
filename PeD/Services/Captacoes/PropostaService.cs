@@ -220,6 +220,16 @@ namespace PeD.Services.Captacoes
             return null;
         }
 
+        public PropostaRelatorioDiretoria GetRelatorioDiretoria(int captacaoId)
+        {
+            return null;
+        }
+
+        public PropostaRelatorioDiretoria GetRelatorioDiretoriaFull(int captacaoId)
+        {
+            return null;
+        }
+
         public PropostaContrato GetContrato(Guid guid)
         {
             var proposta = _captacaoPropostas
@@ -278,6 +288,13 @@ namespace PeD.Services.Captacoes
             var contrato = GetContratoFull(propostaId);
             var contratoDto = _mapper.Map<PropostaContratoDto>(contrato);
             return renderService.RenderToStringAsync("Proposta/Contrato", contratoDto).Result;
+        }
+
+        public string PrintRelatorioDiretoria(int propostaId)
+        {
+            var relatorio = GetRelatorioDiretoriaFull(propostaId);
+            var relatorioDto = _mapper.Map<PropostaRelatorioDiretoriaDto>(relatorio);
+            return renderService.RenderToStringAsync("Proposta/RelatorioDiretoria", relatorioDto).Result;
         }
 
         public List<PropostaContratoRevisao> GetContratoRevisoes(int propostaId)
@@ -466,6 +483,19 @@ namespace PeD.Services.Captacoes
             if (contratoContent != null)
             {
                 var arquivo = _pdfService.HtmlToPdf(contratoContent, $"contrato-{contrato.PropostaId}");
+                PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
+                return arquivo;
+            }
+
+            return null;
+        }
+
+        public FileUpload SaveRelatorioDiretoriaPdf(PropostaRelatorioDiretoria relatorio)
+        {
+            var contratoContent = PrintContrato(relatorio.PropostaId);
+            if (contratoContent != null)
+            {
+                var arquivo = _pdfService.HtmlToPdf(contratoContent, $"relatorio-{relatorio.PropostaId}");
                 PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
                 return arquivo;
             }

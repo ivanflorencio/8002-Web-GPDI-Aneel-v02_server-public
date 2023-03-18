@@ -186,6 +186,7 @@ namespace PeD.Controllers.Captacoes
             captacao.EnvioCaptacao = DateTime.Now;
             captacao.Status = Captacao.CaptacaoStatus.Elaboracao;
             captacao.ContratoSugeridoId = request.ContratoId;
+            captacao.RelatorioDiretoriaId = request.RelatorioDiretoriaId;
             captacao.UsuarioSuprimentoId = request.UsuarioSuprimentoId;
             Service.Put(captacao);
             if (request.Fornecedores.Count > 0)
@@ -613,6 +614,10 @@ namespace PeD.Controllers.Captacoes
             var captacoes = Service.GetFormalizacao(null, this.IsAdmin() ? null : this.UserId());
 
             var mapped = Mapper.Map<List<CaptacaoFormalizacaoDto>>(captacoes);
+            foreach (var item in mapped)
+            {
+                item.StatusRelatorioDiretoria = Service.VerificarRelatorioDiretoria(item.Id);
+            }
             return Ok(mapped);
         }
 

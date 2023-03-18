@@ -707,5 +707,20 @@ namespace PeD.Services.Captacoes
         }
 
         #endregion
+
+        public string VerificarRelatorioDiretoria(int captacaoId)
+        {
+            
+            var captacao = _context.Set<Captacao>().Find(captacaoId);
+            var status = _context.Set<PropostaRelatorioDiretoria>()
+                .Any(x => x.PropostaId == captacao.PropostaSelecionadaId && x.Finalizado) 
+                ? "Finalizado"
+                : "Rascunho";
+                            
+            return status;
+        }
+
+
+        
     }
 }

@@ -124,6 +124,8 @@ namespace PeD.Data
             builder.Entity<FaseCadeiaProduto>().Config();
             builder.Entity<ProdutoTipo>().Seed();
             builder.Entity<Contrato>().ToTable("Contratos");
+            builder.Entity<RelatorioDiretoria>().ToTable("RelatoriosDiretoria");
+            builder.Entity<PropostaRelatorioDiretoria>().ToTable("PropostaRelatoriosDiretoria");
             builder.Entity<Clausula>().ToTable("Clausulas");
             builder.Entity<FaseTipoDetalhado>().Config();
             builder.Entity<ItemAjuda>().Config();
@@ -137,6 +139,9 @@ namespace PeD.Data
                 eb.Property(c => c.CreatedAt).HasDefaultValueSql("getdate()");
                 eb.HasOne(c => c.ContratoSugerido).WithMany()
                     .HasForeignKey("ContratoSugeridoId")
+                    .IsRequired(false);
+                eb.HasOne(c => c.RelatorioDiretoria).WithMany()
+                    .HasForeignKey("RelatorioDiretoriaId")
                     .IsRequired(false);
 
                 eb.HasOne(c => c.EspecificacaoTecnicaFile).WithOne().OnDelete(DeleteBehavior.NoAction);
