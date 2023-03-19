@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +24,9 @@ namespace PeD.Services.Analises
         private GestorDbContext _context;
         private DbSet<CriterioAvaliacao> _criterioAvaliacao;
         private DbSet<ParecerTecnico> _parecerTecnico;
-        
+
         public AnaliseTecnicaService(IRepository<AnaliseTecnica> repository, GestorDbContext context,
-            ILogger<AnaliseTecnicaService> logger, 
+            ILogger<AnaliseTecnicaService> logger,
             IMapper mapper) : base(repository)
         {
             _context = context;
@@ -47,26 +48,26 @@ namespace PeD.Services.Analises
             var analises = _context.Set<AnaliseTecnica>().AsQueryable();
             var propostas = _context.Set<Proposta>().AsQueryable();
 
-            var query = 
+            var query =
                 from proposta in propostas
                 where (
                     proposta.Participacao == StatusParticipacao.Aceito
                     || proposta.Participacao == StatusParticipacao.Concluido
                 )
-                && !(from analise in analises 
-                        where analise.PropostaId == proposta.Id
-                        && (
-                            analise.Status != "Aberta" 
-                            && analise.Status != "Pendente"
-                            && analise.Status != "Enviada"
-                        )
-                        select analise.PropostaId).Contains(proposta.Id)
+                && !(from analise in analises
+                     where analise.PropostaId == proposta.Id
+                     && (
+                         analise.Status != "Aberta"
+                         && analise.Status != "Pendente"
+                         && analise.Status != "Enviada"
+                     )
+                     select analise.PropostaId).Contains(proposta.Id)
                 select proposta;
-            
+
             return query.Include(c => c.Captacao)
                 .ThenInclude(d => d.Demanda)
                 .ThenInclude(d => d.AnalistaTecnico)
-                .Include(f=>f.Fornecedor)
+                .Include(f => f.Fornecedor)
                 .Distinct()
                 .ToList();
         }
@@ -89,6 +90,8 @@ namespace PeD.Services.Analises
                 .Include(r => r.Responsavel)
                 .Include(c => c.Pareceres)
                 .ThenInclude(r => r.Responsavel)
+                .Include(c => c.Pareceres)
+                .ThenInclude(r => r.CriterioAvaliacao)
                 .Include(p => p.Proposta)
                 .ThenInclude(c => c.Captacao)
                 .FirstOrDefault();
@@ -99,9 +102,9 @@ namespace PeD.Services.Analises
         {
             var demandas = _context.Set<Proposta>().AsQueryable();
             var demanda = demandas
-                                .Include(x=>x.Captacao)
-                                .ThenInclude(x=>x.Demanda)
-                                .First(x=>x.Id == propostaId)?.Captacao.Demanda;
+                                .Include(x => x.Captacao)
+                                .ThenInclude(x => x.Demanda)
+                                .First(x => x.Id == propostaId)?.Captacao.Demanda;
             return this.GetCriteriosAvaliacaoDemanda(demanda?.Id ?? 0);
         }
 
@@ -110,7 +113,7 @@ namespace PeD.Services.Analises
             var query =
                 from criterio in _context.Set<CriterioAvaliacao>().AsQueryable()
                 where
-                    criterio.DemandaId == demandaId                    
+                    criterio.DemandaId == demandaId
                 select criterio;
 
             return query
@@ -139,18 +142,21 @@ namespace PeD.Services.Analises
         public CriterioAvaliacao SalvarCriterioAvaliacao(CriterioAvaliacao criterioAvaliacao)
         {
             var criterios = _context.Set<CriterioAvaliacao>();
-            
-            if (criterioAvaliacao.Id > 0) {
-                var criterio = criterios.Where(x=>x.Id == criterioAvaliacao.Id).FirstOrDefault();
+
+            if (criterioAvaliacao.Id > 0)
+            {
+                var criterio = criterios.Where(x => x.Id == criterioAvaliacao.Id).FirstOrDefault();
                 criterio.Descricao = criterioAvaliacao.Descricao;
                 criterio.Peso = criterioAvaliacao.Peso;
-                criterios.Update(criterio);                
-            } else {                
+                criterios.Update(criterio);
+            }
+            else
+            {
                 criterioAvaliacao.DataHora = DateTime.Now;
                 criterioAvaliacao.Guid = Guid.NewGuid();
                 criterios.Add(criterioAvaliacao);
             }
-            
+
             _context.SaveChanges();
 
             return criterioAvaliacao;
@@ -159,10 +165,11 @@ namespace PeD.Services.Analises
         public void RemoverCriterioAvaliacao(int criterioId)
         {
             var criterios = _context.Set<CriterioAvaliacao>();
-            var criterio = criterios.First(x=>x.Id == criterioId);
-            if (criterio != null) {
-               criterios.Remove(criterio);
-               _context.SaveChanges();
+            var criterio = criterios.First(x => x.Id == criterioId);
+            if (criterio != null)
+            {
+                criterios.Remove(criterio);
+                _context.SaveChanges();
             }
         }
 
@@ -172,29 +179,32 @@ namespace PeD.Services.Analises
             var pareceres = _context.Set<ParecerTecnico>();
             var analiseId = analiseTecnica.Id;
 
-            foreach (var item in analiseTecnica.Pareceres) {
+            foreach (var item in analiseTecnica.Pareceres)
+            {
                 item.ResponsavelId = analiseTecnica.ResponsavelId;
-                item.DataHora = DateTime.Now;                    
+                item.DataHora = DateTime.Now;
             }
-            
+
             // Caso seja um update
-            if (analiseId > 0) {
-                var analise = _context.AnaliseTecnica.First(x=>x.Id == analiseId);
+            if (analiseId > 0)
+            {
+                var analise = _context.AnaliseTecnica.First(x => x.Id == analiseId);
                 analise.Comentarios = analiseTecnica.Comentarios;
                 analise.Justificativa = analiseTecnica.Justificativa;
                 analise.PontuacaoFinal = analiseTecnica.PontuacaoFinal;
                 analise.DataHora = DateTime.Now;
-                
+
                 // Alterando Status caso esteja definido
                 if (!String.IsNullOrEmpty(analiseTecnica.Status))
                     analise.Status = analiseTecnica.Status;
-                
+
                 // Limpando pareceres anteriores e adicionado novos
-                pareceres.RemoveRange(pareceres.Where(x=>x.AnaliseTecnicaId == analiseId));
-                _context.SaveChanges();                
+                pareceres.RemoveRange(pareceres.Where(x => x.AnaliseTecnicaId == analiseId));
+                _context.SaveChanges();
 
                 // Adicionando informações (nao enviadas) aos pareceres da analise
-                foreach (var item in analiseTecnica.Pareceres) {
+                foreach (var item in analiseTecnica.Pareceres)
+                {
                     item.Id = 0;
                     item.ResponsavelId = analiseTecnica.ResponsavelId;
                     item.DataHora = DateTime.Now;
@@ -203,26 +213,53 @@ namespace PeD.Services.Analises
                 pareceres.AddRange(analiseTecnica.Pareceres);
                 _context.SaveChanges();
 
-            // Caso seja um insert
-            } else {
+                // Caso seja um insert
+            }
+            else
+            {
                 analiseTecnica.Guid = Guid.NewGuid();
                 analiseTecnica.Status = "Aberta";
-                analises.Add(analiseTecnica);               
-                
+                analises.Add(analiseTecnica);
+
                 _context.SaveChanges();
-                
+
             }
         }
 
         public void EnviarAnaliseTecnica(AnaliseTecnica analiseTecnica)
         {
             analiseTecnica.Status = "Enviada";
-            this.SalvarAnaliseTecnica(analiseTecnica);            
+            this.SalvarAnaliseTecnica(analiseTecnica);
         }
 
         internal bool VerificarAnaliseTecnicaFinalizada(int propostaId)
         {
-            return _context.AnaliseTecnica.Any(x=>x.PropostaId == propostaId && x.Status == "Enviada");
+            return _context.AnaliseTecnica.Any(x => x.PropostaId == propostaId && x.Status == "Enviada");
+        }
+
+        internal static string MontarRelatorio(AnaliseTecnica analise)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("<style>.analise td {background-color: #f0f0f0; border: solid 2px #ffffff;}</style>");
+            sb.Append("<style>.analise th {background-color: #007984;color: #ffffff;}</style>");
+            sb.Append("<table class='analise' style='width:100%' cellpadding='8'><tr><th style='text-align:left;'>Critérios</th><th>Pontuação</th></tr>");
+            foreach (var item in analise.Pareceres)
+            {
+                sb.Append(MontarCriterio(item.CriterioAvaliacao.Descricao, item.Justificativa, item.Pontuacao.ToString()));
+            }
+            sb.Append(MontarCriterio("Justificativa", analise.Justificativa));
+            sb.Append(MontarCriterio("Comentários", analise.Comentarios));
+            sb.Append(MontarCriterio("Pontuacao Final", "", analise.PontuacaoFinal.ToString()));
+            sb.Append("</table>");
+
+            return sb.ToString();
+        }
+
+        internal static string MontarCriterio(string titulo, string justificativa, string pontuacao = "")
+        {
+            return $"<tr><td colspan='{(String.IsNullOrEmpty(pontuacao) ? "2" : "1")}'><p><strong>{titulo}</strong><br/>{justificativa}</p></td>"
+                     + ((String.IsNullOrEmpty(pontuacao)) ? "</tr>" : $"<td style='text-align:center'><strong>{pontuacao}</strong></td></tr>");
         }
     }
 }

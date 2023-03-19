@@ -44,9 +44,7 @@ namespace PeD.Mapping
             CreateMap<PropostaContratoRevisao, ContratoRevisaoListItemDto>()
                 .ForMember(r => r.Name, opt => opt.MapFrom(src => src.Parent.Parent.Titulo));
 
-            CreateMap<PropostaRelatorioDiretoria, PropostaRelatorioDiretoriaDto>()
-                .ForMember(c => c.Conteudo, opt => opt.MapFrom(src => RelatorioDiretoriaService.ReplaceShortcodes(src.Conteudo, src.Proposta)))
-               ;
+            CreateMap<PropostaRelatorioDiretoria, PropostaRelatorioDiretoriaDto>();
 
             CreateMap<PlanoTrabalho, PlanoTrabalhoDto>()
                 .ForMember(dest => dest.Arquivos, options =>

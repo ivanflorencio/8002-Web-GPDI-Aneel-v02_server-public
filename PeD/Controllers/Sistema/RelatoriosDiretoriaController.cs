@@ -24,7 +24,7 @@ namespace PeD.Controllers.Sistema
         [HttpGet("Shortcodes")]
         public ActionResult GetShortCodes()
         {
-            return Ok(ContratoService.GetShortcodesDescriptionsRD());
+            return Ok(RelatorioDiretoriaService.GetShortcodesDescriptions());
         }
 
         [Authorize(Policy = Policies.IsAdmin)]

@@ -64,6 +64,8 @@ namespace PeD.Core.Models.Propostas
         public List<Relatorio> HistoricoRelatorios { get; set; }
         public List<ContratoComentario> ContratoComentarios { get; set; }
         public List<PlanoComentario> PlanoTrabalhoComentarios { get; set; }
+        public AnalisePed AnalisePed { get; set; }
+        public AnaliseTecnica AnaliseTecnica { get; set; }
     }
 
     public class PropostaNode : BaseEntity

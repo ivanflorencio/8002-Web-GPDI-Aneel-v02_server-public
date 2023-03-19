@@ -7,11 +7,13 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PeD.Core.ApiModels.Propostas;
+using PeD.Core.Extensions;
 using PeD.Core.Models;
 using PeD.Core.Models.Captacoes;
 using PeD.Core.Models.Propostas;
 using PeD.Core.Validators;
 using PeD.Data;
+using PeD.Services.Analises;
 using PeD.Views.Email.Captacao.Propostas;
 using TaesaCore.Interfaces;
 using TaesaCore.Services;
@@ -22,25 +24,30 @@ namespace PeD.Services.Captacoes
     public class PropostaService : BaseService<Proposta>
     {
         private DbSet<Proposta> _captacaoPropostas;
+        private DbSet<Captacao> _captacao;
+        private DbSet<PropostaRelatorioDiretoria> _propostaRelatorioDiretoria;
         private DbSet<RecursoHumano> _recursoHumano;
         private DbSet<RecursoMaterial> _recursoMaterial;
         private DbSet<Risco> _risco;
         private DbSet<Escopo> _escopo;
         private DbSet<AlocacaoRh> _recursoHumanoAlocacao;
         private DbSet<AlocacaoRm> _recursoMaterialAlocacao;
-        private DbSet<Meta> _metas;        
+        private DbSet<Meta> _metas;
         private DbSet<PlanoTrabalho> _planoTrabalho;
         private IMapper _mapper;
         private ILogger<PropostaService> _logger;
         private IViewRenderService renderService;
         private GestorDbContext context;
         private SendGridService _sendGridService;
-        private UserService _userService;        
+        private UserService _userService;
         private PdfService _pdfService;
+        private AnalisePedService _analisePedService;
+        private AnaliseTecnicaService _analiseTecnicaService;
 
         public PropostaService(IRepository<Proposta> repository, GestorDbContext context, IMapper mapper,
             IViewRenderService renderService, SendGridService sendGridService, UserService userService,
-            ILogger<PropostaService> logger, ArquivoService arquivoService, PdfService pdfService)
+            ILogger<PropostaService> logger, ArquivoService arquivoService, PdfService pdfService,
+            AnalisePedService analisePedService, AnaliseTecnicaService analiseTecnicaService)
             : base(repository)
         {
             this.context = context;
@@ -51,14 +58,18 @@ namespace PeD.Services.Captacoes
             _logger = logger;
             _pdfService = pdfService;
             _captacaoPropostas = context.Set<Proposta>();
+            _captacao = context.Set<Captacao>();
+            _propostaRelatorioDiretoria = context.Set<PropostaRelatorioDiretoria>();
             _recursoHumano = context.Set<RecursoHumano>();
             _recursoMaterial = context.Set<RecursoMaterial>();
             _risco = context.Set<Risco>();
             _escopo = context.Set<Escopo>();
-            _metas = context.Set<Meta>();           
+            _metas = context.Set<Meta>();
             _planoTrabalho = context.Set<PlanoTrabalho>();
             _recursoHumanoAlocacao = context.Set<AlocacaoRh>();
             _recursoMaterialAlocacao = context.Set<AlocacaoRm>();
+            _analisePedService = analisePedService;
+            _analiseTecnicaService = analiseTecnicaService;
         }
 
         #region Lists
@@ -127,7 +138,7 @@ namespace PeD.Services.Captacoes
                 .ThenInclude(c => c.Demanda)
                 .ThenInclude(d => d.TabelaValorHora)
                 .FirstOrDefault(p => p.Guid == guid);
-                return captacao?.Captacao?.Demanda?.TabelaValorHora;
+            return captacao?.Captacao?.Demanda?.TabelaValorHora;
         }
 
         public Proposta GetPropostaFull(int id)
@@ -146,22 +157,24 @@ namespace PeD.Services.Captacoes
                 .Include("Produtos.TipoDetalhado")
 
                 //Empresas
-                .Include(p=>p.Empresas)
+                .Include(p => p.Empresas)
 
                 .Include(p => p.Escopo)
                 .Include(p => p.PlanoTrabalho)
-                .Include(p => p.Fornecedor) 
+                .Include(p => p.Fornecedor)
 
                 .FirstOrDefault(p => p.Id == id);
 
-                proposta.Riscos = _risco.Where(r => r.PropostaId == id).ToList();
-                proposta.Metas = _metas.Where(m => m.PropostaId == id).ToList();                
-                proposta.RecursosHumanos = _recursoHumano.Where(r => r.PropostaId == id).ToList();
-                proposta.RecursosHumanosAlocacoes = _recursoHumanoAlocacao.Where(r => r.PropostaId == id).ToList();
-                proposta.RecursosMateriais = _recursoMaterial.Where(r => r.PropostaId == id).ToList();
-                proposta.RecursosMateriaisAlocacoes = _recursoMaterialAlocacao.Where(r => r.PropostaId == id).ToList();
+            proposta.Riscos = _risco.Where(r => r.PropostaId == id).ToList();
+            proposta.Metas = _metas.Where(m => m.PropostaId == id).ToList();
+            proposta.RecursosHumanos = _recursoHumano.Where(r => r.PropostaId == id).ToList();
+            proposta.RecursosHumanosAlocacoes = _recursoHumanoAlocacao.Where(r => r.PropostaId == id).ToList();
+            proposta.RecursosMateriais = _recursoMaterial.Where(r => r.PropostaId == id).ToList();
+            proposta.RecursosMateriaisAlocacoes = _recursoMaterialAlocacao.Where(r => r.PropostaId == id).ToList();
+            proposta.AnalisePed = _analisePedService.GetAnalisePedProposta(id);
+            proposta.AnaliseTecnica = _analiseTecnicaService.GetAnaliseTecnicaProposta(id);
 
-                return proposta;
+            return proposta;
         }
 
         public Proposta GetPropostaPorResponsavel(int captacaoId, string userId)
@@ -220,14 +233,72 @@ namespace PeD.Services.Captacoes
             return null;
         }
 
-        public PropostaRelatorioDiretoria GetRelatorioDiretoria(int captacaoId)
+        public void SalvarRelatorioDiretoria(int relatorioId, string conteudo, bool isDraft)
         {
-            return null;
+            var relatorioProposta = _propostaRelatorioDiretoria
+                                        .Include(x => x.Proposta)
+                                        .Where(x => x.Id == relatorioId)
+                                        .FirstOrDefault();
+
+            var hash = relatorioProposta.Conteudo?.ToSHA256() ?? "";
+            var hasChanges = !hash.Equals(conteudo.ToSHA256());
+
+            relatorioProposta.Finalizado = relatorioProposta.Finalizado || !isDraft;
+            relatorioProposta.Conteudo = conteudo;
+
+            if (!isDraft && (hasChanges || relatorioProposta.FileId == null))
+            {
+                var file = SaveRelatorioDiretoriaPdf(relatorioProposta);
+                relatorioProposta.File = file;
+                relatorioProposta.FileId = file.Id;
+            }
+
+            context.Update(relatorioProposta);
+            context.SaveChanges();
         }
 
-        public PropostaRelatorioDiretoria GetRelatorioDiretoriaFull(int captacaoId)
+        public PropostaRelatorioDiretoria GetRelatorioDiretoria(int captacaoId)
         {
-            return null;
+            var proposta = GetRelatorioDiretoriaPorCaptacao(captacaoId);
+
+            if (proposta == null)
+            {
+                var captacao = _captacao
+                                    .Include(c => c.RelatorioDiretoria)
+                                    .Where(c => c.Id == captacaoId)
+                                    .FirstOrDefault();
+                CriarRelatorioDiretoria(captacao);
+                proposta = GetRelatorioDiretoriaPorCaptacao(captacaoId);
+            }
+
+            return proposta;
+
+        }
+
+        public void CriarRelatorioDiretoria(Captacao captacao)
+        {
+            context.Add(new PropostaRelatorioDiretoria
+            {
+                ParentId = captacao.RelatorioDiretoriaId.Value,
+                PropostaId = captacao.PropostaSelecionadaId.Value,
+                Conteudo = "\n<!-- HEADER -->\n" + captacao.RelatorioDiretoria.Header +
+                                "\n<!-- CONTEUDO -->\n" + captacao.RelatorioDiretoria.Conteudo +
+                                "\n<!-- FOOTER -->\n" + captacao.RelatorioDiretoria.Footer
+            });
+            context.SaveChanges();
+        }
+
+        public PropostaRelatorioDiretoria GetRelatorioDiretoriaPorCaptacao(int captacaoId)
+        {
+            return _propostaRelatorioDiretoria
+                .Include(p => p.Proposta)
+                .ThenInclude(p => p.Captacao)
+                .Include(p => p.Parent)
+                .Include(p => p.Proposta)
+                .ThenInclude(p => p.Fornecedor)
+                .Include(p => p.File)
+                .Where(x => x.Proposta.Captacao.Id == captacaoId)
+                .FirstOrDefault();
         }
 
         public PropostaContrato GetContrato(Guid guid)
@@ -292,8 +363,11 @@ namespace PeD.Services.Captacoes
 
         public string PrintRelatorioDiretoria(int propostaId)
         {
-            var relatorio = GetRelatorioDiretoriaFull(propostaId);
+            var propostaFull = GetPropostaFull(propostaId);
+            var relatorio = GetRelatorioDiretoria(propostaFull.CaptacaoId);
             var relatorioDto = _mapper.Map<PropostaRelatorioDiretoriaDto>(relatorio);
+            relatorioDto.Titulo = "RELATÓRIO DIRETORIA";
+            relatorioDto.Conteudo = RelatorioDiretoriaService.ReplaceShortcodes(relatorio.Conteudo, propostaFull);
             return renderService.RenderToStringAsync("Proposta/RelatorioDiretoria", relatorioDto).Result;
         }
 
@@ -492,10 +566,10 @@ namespace PeD.Services.Captacoes
 
         public FileUpload SaveRelatorioDiretoriaPdf(PropostaRelatorioDiretoria relatorio)
         {
-            var contratoContent = PrintContrato(relatorio.PropostaId);
-            if (contratoContent != null)
+            var relatorioContent = PrintRelatorioDiretoria(relatorio.PropostaId);
+            if (relatorioContent != null)
             {
-                var arquivo = _pdfService.HtmlToPdf(contratoContent, $"relatorio-{relatorio.PropostaId}");
+                var arquivo = _pdfService.HtmlToPdf(relatorioContent, $"relatorio-{relatorio.PropostaId}");
                 PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
                 return arquivo;
             }
@@ -518,7 +592,26 @@ namespace PeD.Services.Captacoes
                 PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
                 return arquivo;
             }
-            
+
+            return null;
+        }
+
+        public FileUpload GetRelatorioDiretoriaPdf(int captacaoId)
+        {
+            var relatorio = GetRelatorioDiretoria(captacaoId);
+            if (relatorio?.File != null)
+            {
+                return relatorio.File;
+            }
+
+            var relatorioContent = PrintRelatorioDiretoria(relatorio.PropostaId);
+            if (relatorioContent != null)
+            {
+                var arquivo = _pdfService.HtmlToPdf(relatorioContent, $"relatorio-{relatorio.PropostaId}");
+                PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
+                return arquivo;
+            }
+
             return null;
         }
 

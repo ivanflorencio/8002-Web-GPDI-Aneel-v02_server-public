@@ -26,10 +26,11 @@ namespace PeD.Controllers.Propostas
     [SwaggerTag("Proposta ")]
     [ApiController]
     [Authorize("Bearer")]
-    [Route("api/Propostas/{propostaId:guid}/[controller]")]
+    [Route("api/Proposta/[controller]")]
     public class RelatorioDiretoriaController : PropostaNodeBaseController<PropostaRelatorioDiretoria>
     {
         private GestorDbContext _context;
+        private PropostaService _propostaService;
 
         public RelatorioDiretoriaController(IService<PropostaRelatorioDiretoria> service, IMapper mapper,
             IAuthorizationService authorizationService, PropostaService propostaService, GestorDbContext context) :
@@ -37,51 +38,49 @@ namespace PeD.Controllers.Propostas
                 authorizationService, propostaService)
         {
             _context = context;
+            _propostaService = propostaService;
         }
 
-        [HttpGet("")]
-        public async Task<ActionResult<PropostaRelatorioDiretoriaDto>> Get([FromRoute] Guid propostaId, int captacaoId)
+        [HttpGet("{captacaoId}")]
+        public ActionResult<PropostaRelatorioDiretoriaDto> Get([FromRoute] int captacaoId)
         {
-            if (!await HasAccess())
-                return Forbid();
             var relatorio = PropostaService.GetRelatorioDiretoria(captacaoId);
-            relatorio = PropostaService.GetRelatorioDiretoriaFull(relatorio.PropostaId);
-            
-            return Ok(Mapper.Map<PropostaRelatorioDiretoriaDto>(relatorio));
+
+            if (relatorio == null) return NotFound();
+
+            var relatorioDto = Mapper.Map<PropostaRelatorioDiretoriaDto>(relatorio);
+            relatorioDto.Titulo = relatorio.Proposta.Captacao.Titulo + " - " + relatorio.Proposta.Fornecedor.Nome;
+
+            return Ok(relatorioDto);
         }
 
-        [HttpPost("")]
-        public async Task<ActionResult> Post([FromRoute] int contratoId,
-            [FromBody] RelatorioDiretoriaRequest request)
+        [HttpPut("")]
+        public ActionResult Salvar([FromBody] RelatorioDiretoriaRequest request)
         {
-            if (!await HasAccess(true))
-                return Forbid();
-
-            var relatorioProposta = PropostaService.GetRelatorioDiretoria(contratoId);
-            var hash = relatorioProposta.Conteudo?.ToSHA256() ?? "";
-            var hasChanges = !hash.Equals(request.Conteudo.ToSHA256());
-
-            relatorioProposta.Finalizado = relatorioProposta.Finalizado || !request.Draft;
-            relatorioProposta.Conteudo = request.Conteudo;
-            
-            if (relatorioProposta.Id != 0)
-            {
-                Service.Put(relatorioProposta);
-            }
-            else
-            {
-                Service.Post(relatorioProposta);                
-            }
-
-            if (!request.Draft && (hasChanges || relatorioProposta.FileId == null))
-            {
-                var file = PropostaService.SaveRelatorioDiretoriaPdf(relatorioProposta);
-                relatorioProposta.File = file;
-                relatorioProposta.FileId = file.Id;
-                Service.Put(relatorioProposta);
-            }
-
-            return Ok(new { relatorioProposta.Id });
+            PropostaService.SalvarRelatorioDiretoria(request.Id, request.Conteudo, request.Draft);
+            return Ok(new { request.Id });
         }
+
+        [HttpGet("Download/{propostaId}")]
+        public ActionResult PropostaRelatorioDiretoriaDownload(int propostaId)
+        {
+            var proposta = _propostaService.GetProposta(propostaId);
+
+            if (proposta != null)
+            {
+                var relatorio = _propostaService.GetRelatorioDiretoriaPdf(proposta.CaptacaoId);
+                if (relatorio != null)
+                {
+                    return PhysicalFile(relatorio.Path, "application/pdf", relatorio.FileName);
+                }
+
+                return NotFound();
+            }
+
+            return Forbid();
+        }
+
+
+
     }
 }

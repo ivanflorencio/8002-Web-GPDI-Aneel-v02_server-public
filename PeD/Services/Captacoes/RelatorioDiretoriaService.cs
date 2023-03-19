@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PeD.Core.Models.Propostas;
+using PeD.Services.Analises;
 using Serilog;
 
 namespace PeD.Services.Captacoes
 {
+
     public class RelatorioDiretoriaService
     {
+
         public struct Shortcode
         {
             public string Code { get; set; }
@@ -19,6 +22,49 @@ namespace PeD.Services.Captacoes
         public static List<Shortcode> Shortcodes =
             new List<Shortcode>()
             {
+                new Shortcode()
+                {
+                    Label = "Parecer Análise Técnica",
+                    Code = "Parecer.AnalisePed",
+                    Replacer = p => AnaliseTecnicaService.MontarRelatorio(p.AnaliseTecnica)
+                },
+                new Shortcode()
+                {
+                    Label = "Parecer Análise P&D",
+                    Code = "Parecer.AnaliseTecnica",
+                    Replacer = p => AnalisePedService.MontarRelatorio(p.AnalisePed)
+                },
+                new Shortcode()
+                {
+                    Label = "Nome da Demanda",
+                    Code = "Demanda.Nome",
+                    Replacer = p => p.Captacao.Titulo
+                },
+                new Shortcode()
+                {
+                    Label = "Objetivo do Projeto",
+                    Code = "Escopo.Objetivo",
+                    Replacer = p => p.Escopo.Objetivo
+                },
+                new Shortcode()
+                {
+                    Label = "Metologia de Trabalho",
+                    Code = "PlanoDeTrabalho.Metodologia",
+                    Replacer = p => p.PlanoTrabalho.MetodologiaTrabalho
+                },
+                new Shortcode()
+                {
+                    Label = "Data Lançamento Captação",
+                    Code = "Captacao.DataLancamento",
+                    Replacer = p => p.Captacao.EnvioCaptacao.Value.ToLongDateString()
+                },
+                new Shortcode()
+                {
+                    Label = "Quantidade de Propostas Recebidas",
+                    Code = "Proposta.NumeroTotal",
+                    Replacer = p => p.Captacao.Propostas.Count().ToString()
+                },
+                ////
                 new Shortcode()
                 {
                     Label = "Fornecedor Nome",
@@ -90,9 +136,8 @@ namespace PeD.Services.Captacoes
 
         public static List<List<string>> GetShortcodesDescriptions()
         {
-            return Shortcodes.Select(src => new List<string>() {src.Code, src.Label}).ToList();
+            return Shortcodes.Select(src => new List<string>() { src.Code, src.Label }).ToList();
         }
-
         public static string ReplaceShortcodes(string text, Proposta proposta)
         {
             if (string.IsNullOrWhiteSpace(text))

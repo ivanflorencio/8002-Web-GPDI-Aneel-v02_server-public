@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PeD.Authorizations;
-using PeD.Core.ApiModels.Propostas;
 using PeD.Core.ApiModels.Cronograma;
+using PeD.Core.ApiModels.Propostas;
 using PeD.Core.Models;
 using PeD.Core.Models.Captacoes;
 using PeD.Core.Models.Fornecedores;
@@ -177,7 +177,7 @@ namespace PeD.Controllers.Propostas
         {
             var cronograma = ServiceCronograma.GetCronograma(id);
             //var cronograma = ServiceCronogramaProjeto.GetCronograma(1);
-            
+
             if (cronograma != null)
             {
                 return Ok(cronograma);
@@ -190,7 +190,7 @@ namespace PeD.Controllers.Propostas
         public ActionResult<TabelaValorHora> TabelaValorHora(Guid id)
         {
             var tabela = Service.GetTabelaValorHora(id);
-            
+
             if (tabela != null)
             {
                 return Ok(tabela);
@@ -203,7 +203,7 @@ namespace PeD.Controllers.Propostas
         public ActionResult<CronogramaDto> Cronograma(Guid id, int numEtapa)
         {
             var detalheEtapa = ServiceCronograma.GetDetalheEtapa(id, numEtapa);
-            
+
             if (detalheEtapa != null)
             {
                 return Ok(detalheEtapa);
