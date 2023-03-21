@@ -147,30 +147,26 @@ namespace PeD.Services.Analises
         internal static string MontarRelatorio(AnalisePed analise)
         {
             var sb = new StringBuilder();
+            sb.Append("<style>.analise p {margin-top:5px;margin-bottom:5px;} h4 {margin-bottom:5px;margin-top:15px;}</style><div class='analise'>");
 
-            sb.Append("<style>.analise td {background-color: #f0f0f0; border: solid 2px #ffffff;}</style>");
-            sb.Append("<style>.analise th {background-color: #007984;color: #ffffff;}</style>");
-            sb.Append("<table class='analise' style='width:100%' cellpadding='8'><tr><th style='text-align:left;'>Critérios</th><th>Pontuação</th></tr>");
-            sb.Append(MontarCriterio("Originalidade", analise.Originalidade, analise.PontuacaoOriginalidade.ToString()));
-            sb.Append(MontarCriterio("Aplicabilidade", analise.Aplicabilidade, analise.PontuacaoAplicabilidade.ToString()));
-            sb.Append(MontarCriterio("Relevância", analise.Relevancia, analise.PontuacaoRelevancia.ToString()));
-            sb.Append(MontarCriterio("Razoabilidade de Custos", analise.RazoabilidadeCustos, analise.PontuacaoRazoabilidadeCustos.ToString()));
+            sb.Append(MontarCriterio("Originalidade", analise.Originalidade, $"Pontuacão: <b>{analise.PontuacaoOriginalidade}</b>"));
+            sb.Append(MontarCriterio("Aplicabilidade", analise.Aplicabilidade, $"Pontuacão: <b>{analise.PontuacaoAplicabilidade}</b>"));
+            sb.Append(MontarCriterio("Relevância", analise.Relevancia, $"Pontuacão: <b>{analise.PontuacaoRelevancia}</b>"));
+            sb.Append(MontarCriterio("Razoabilidade de Custos", analise.RazoabilidadeCustos, $"Pontuacão: <b>{analise.PontuacaoRazoabilidadeCustos}</b>"));
+
             sb.Append(MontarCriterio("Pontos Críticos", analise.PontosCriticos));
             sb.Append(MontarCriterio("Comentários", analise.Comentarios));
-            sb.Append("</table><br/>");
 
-            sb.Append("<table class='analise' style='width:100%' cellpadding='8'><tr><th style='text-align:left;'>Conceito</th><th>Pontuação Final</th></tr>");
-            sb.Append($"<tr><td><p>Conceito do projeto em função da média de pontuação obtida: <strong>{analise.Conceito}</strong></p></td>");
-            sb.Append($"<td><h3 style='text-align:center'>{analise.PontuacaoFinal}</h3></td></tr>");
-            sb.Append("</table>");
+            sb.Append(MontarCriterio("Conceito", $"Conceito do projeto em função da média de pontuação obtida: <b>{analise.Conceito}</b><br/>", $"Pontuacão Final: <b>{analise.PontuacaoFinal}</b>"));
+
+            sb.Append("</div>");
 
             return sb.ToString();
         }
 
         internal static string MontarCriterio(string titulo, string justificativa, string pontuacao = "")
         {
-            return $"<tr><td colspan='{(String.IsNullOrEmpty(pontuacao) ? "2" : "1")}'><p><strong>{titulo}</strong><br/>{justificativa}</p></td>"
-                     + ((String.IsNullOrEmpty(pontuacao)) ? "</tr>" : $"<td style='text-align:center'><strong>{pontuacao}</strong></td></tr>");
+            return $"<h4>{titulo}</h4>{justificativa}<i>{pontuacao}</i><hr/>";
         }
     }
 }

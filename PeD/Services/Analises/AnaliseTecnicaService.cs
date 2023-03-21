@@ -240,26 +240,24 @@ namespace PeD.Services.Analises
         internal static string MontarRelatorio(AnaliseTecnica analise)
         {
             var sb = new StringBuilder();
+            sb.Append("<style>.analise p {margin-top:5px;margin-bottom:5px;} h4 {margin-bottom:5px;margin-top:15px;}</style><div class='analise'>");
 
-            sb.Append("<style>.analise td {background-color: #f0f0f0; border: solid 2px #ffffff;}</style>");
-            sb.Append("<style>.analise th {background-color: #007984;color: #ffffff;}</style>");
-            sb.Append("<table class='analise' style='width:100%' cellpadding='8'><tr><th style='text-align:left;'>Critérios</th><th>Pontuação</th></tr>");
             foreach (var item in analise.Pareceres)
             {
-                sb.Append(MontarCriterio(item.CriterioAvaliacao.Descricao, item.Justificativa, item.Pontuacao.ToString()));
+                sb.Append(MontarCriterio(item.CriterioAvaliacao.Descricao, item.Justificativa, $"Pontuação: <b>{item.Pontuacao}</b>"));
             }
+
             sb.Append(MontarCriterio("Justificativa", analise.Justificativa));
             sb.Append(MontarCriterio("Comentários", analise.Comentarios));
-            sb.Append(MontarCriterio("Pontuacao Final", "", analise.PontuacaoFinal.ToString()));
-            sb.Append("</table>");
+            sb.Append(MontarCriterio($"Pontuacao Final: {analise.PontuacaoFinal}", ""));
+            sb.Append("</div>");
 
             return sb.ToString();
         }
 
         internal static string MontarCriterio(string titulo, string justificativa, string pontuacao = "")
         {
-            return $"<tr><td colspan='{(String.IsNullOrEmpty(pontuacao) ? "2" : "1")}'><p><strong>{titulo}</strong><br/>{justificativa}</p></td>"
-                     + ((String.IsNullOrEmpty(pontuacao)) ? "</tr>" : $"<td style='text-align:center'><strong>{pontuacao}</strong></td></tr>");
+            return $"<h4>{titulo}</h4>{justificativa}<i>{pontuacao}</i><hr/>";
         }
     }
 }
