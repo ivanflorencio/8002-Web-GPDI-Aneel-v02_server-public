@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PeD.Data.Migrations
 {
     [DbContext(typeof(GestorDbContext))]
-    [Migration("AddAnalisePedTabelaEPerfil")]
+    [Migration("A01-AddAnalisePedTabelaEPerfil")]
     public partial class AddAnalisePedTabelaEPerfil : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,7 +24,7 @@ namespace PeD.Data.Migrations
                     Originalidade = table.Column<string>(nullable: true),
                     Aplicabilidade = table.Column<string>(nullable: true),
                     Relevancia = table.Column<string>(nullable: true),
-                    RazoabilidadeCustos = table.Column<string>(nullable: true),                    
+                    RazoabilidadeCustos = table.Column<string>(nullable: true),
                     PontuacaoOriginalidade = table.Column<int>(nullable: true),
                     PontuacaoAplicabilidade = table.Column<int>(nullable: true),
                     PontuacaoRelevancia = table.Column<int>(nullable: true),
@@ -37,7 +37,7 @@ namespace PeD.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PropostaAnalisePed", x => x.Id);                    
+                    table.PrimaryKey("PK_PropostaAnalisePed", x => x.Id);
                 });
 
             migrationBuilder.AddForeignKey(
@@ -59,7 +59,7 @@ namespace PeD.Data.Migrations
             // NOVO PERFIL ANALISTA PED
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
-                columns: new[] { "Id","Name", "NormalizedName" },
+                columns: new[] { "Id", "Name", "NormalizedName" },
                 values: new object[,]
                 {
                     { "aad356ee-aec1-11ed-afa1-0242ac120002", "AnalistaPed", "ANALISTA_PED" },
@@ -72,13 +72,13 @@ namespace PeD.Data.Migrations
             // AVALIACAO PED DA PROPOSTA
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaAnalisePed_Proposta_PropostaId",
-                table: "PropostaAnalisePed");                
+                table: "PropostaAnalisePed");
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaAnalisePed_AspNetUsers_ResponsavelId",
                 table: "PropostaAnalisePed");
             migrationBuilder.DropTable(
                 name: "PropostaAnalisePed");
-           
+
             // NOVO PERFIL ANALISTA PED
             migrationBuilder.DeleteData(
                 table: "AspNetRoles",

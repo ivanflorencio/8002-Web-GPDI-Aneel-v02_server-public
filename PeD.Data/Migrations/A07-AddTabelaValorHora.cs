@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PeD.Data.Migrations
 {
     [DbContext(typeof(GestorDbContext))]
-    [Migration("AddTabelaValorHora")]
+    [Migration("A07-AddTabelaValorHora")]
     public partial class AddTabelaValorHora : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,7 +22,7 @@ namespace PeD.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TabelaValorHora", x => x.Id);                    
+                    table.PrimaryKey("PK_TabelaValorHora", x => x.Id);
                 });
 
             migrationBuilder.AddColumn<int>(

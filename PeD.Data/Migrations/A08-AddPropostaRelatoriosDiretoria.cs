@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PeD.Data.Migrations
 {
     [DbContext(typeof(GestorDbContext))]
-    [Migration("AddPropostaRelatoriosDiretoria")]
+    [Migration("A08-AddPropostaRelatoriosDiretoria")]
     public partial class AddPropostaRelatoriosDiretoria : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

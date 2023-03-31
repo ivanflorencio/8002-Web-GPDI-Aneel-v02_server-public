@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PeD.Data.Migrations
 {
     [DbContext(typeof(GestorDbContext))]
-    [Migration("AddAnalistasResponsaveisDemanda")]
+    [Migration("A03-AddAnalistasResponsaveisDemanda")]
     public partial class AddAnalistasResponsaveisDemanda : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,7 +14,7 @@ namespace PeD.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "AnalistaTecnicoId",
                 table: "Demandas",
-                nullable: true, 
+                nullable: true,
                 maxLength: 450);
             migrationBuilder.AddForeignKey(
                 name: "FK_Demandas_AspNetUsers_AnalistaTecnicoId",
@@ -27,7 +27,7 @@ namespace PeD.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "AnalistaPedId",
                 table: "Demandas",
-                nullable: true, 
+                nullable: true,
                 maxLength: 450);
             migrationBuilder.AddForeignKey(
                 name: "FK_Demandas_AspNetUsers_AnalistaPedId",
@@ -43,7 +43,7 @@ namespace PeD.Data.Migrations
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Demandas_AspNetUsers_AnalistaTecnicoId",
-                table: "Demandas");                
+                table: "Demandas");
             migrationBuilder.DropForeignKey(
                 name: "FK_Demandas_AspNetUsers_AnalistaTecnicoId",
                 table: "Demandas");
@@ -60,7 +60,7 @@ namespace PeD.Data.Migrations
             migrationBuilder.DropColumn(
                 name: "AnalistaPedId",
                 table: "Demandas");
-           
+
         }
     }
 }

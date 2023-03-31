@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PeD.Data.Migrations
 {
     [DbContext(typeof(GestorDbContext))]
-    [Migration("AddMesDesembolso")]
+    [Migration("A04-AddMesDesembolso")]
     public partial class AddMesDesembolso : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -1,12 +1,12 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace PeD.Data.Migrations
 {
     [DbContext(typeof(GestorDbContext))]
-    [Migration("AddAnaliseTecnicaTabelaEPerfil")]
+    [Migration("A02-AddAnaliseTecnicaTabelaEPerfil")]
     public partial class AddAnaliseTecnicaTabelaEPerfil : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,7 +28,7 @@ namespace PeD.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PropostaAnaliseTecnica", x => x.Id);                    
+                    table.PrimaryKey("PK_PropostaAnaliseTecnica", x => x.Id);
                 });
 
             migrationBuilder.AddForeignKey(
@@ -63,7 +63,7 @@ namespace PeD.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PropostaCriterioAvaliacao", x => x.Id);                    
+                    table.PrimaryKey("PK_PropostaCriterioAvaliacao", x => x.Id);
                 });
 
             migrationBuilder.AddForeignKey(
@@ -93,11 +93,11 @@ namespace PeD.Data.Migrations
                     ResponsavelId = table.Column<string>(nullable: true, maxLength: 450),
                     DataHora = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     Justificativa = table.Column<string>(nullable: false),
-                    Pontuacao = table.Column<int>(nullable: false),                    
+                    Pontuacao = table.Column<int>(nullable: false),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PropostaParecerTecnico", x => x.Id);                    
+                    table.PrimaryKey("PK_PropostaParecerTecnico", x => x.Id);
                 });
 
             migrationBuilder.AddForeignKey(
@@ -124,11 +124,11 @@ namespace PeD.Data.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.SetNull);
 
-            
+
             // NOVO PERFIL ANALISTA TECNICO
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
-                columns: new[] { "Id","Name", "NormalizedName" },
+                columns: new[] { "Id", "Name", "NormalizedName" },
                 values: new object[,]
                 {
                     { "8f4e3f04-a65d-11ed-afa1-0242ac120002", "AnalistaTecnico", "ANALISTA_TECNICO" },
@@ -141,17 +141,17 @@ namespace PeD.Data.Migrations
             // AVALIACAO TECNICA DA PROPOSTA
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaAnaliseTecnica_Proposta_PropostaId",
-                table: "PropostaAnaliseTecnica");                
+                table: "PropostaAnaliseTecnica");
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaAnaliseTecnica_AspNetUsers_ResponsavelId",
                 table: "PropostaAnaliseTecnica");
             migrationBuilder.DropTable(
                 name: "PropostaAnaliseTecnica");
-           
+
             // CRITERIOS DE AVALIACAO TECNICA DA PROPOSTA
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaCriterioAvaliacao_Demanda_DemandaId",
-                table: "PropostaCriterioAvaliacao");                
+                table: "PropostaCriterioAvaliacao");
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaCriterioAvaliacao_AspNetUsers_ResponsavelId",
                 table: "PropostaCriterioAvaliacao");
@@ -161,7 +161,7 @@ namespace PeD.Data.Migrations
             // PARECERES TECNICOS DA PROPOSTA
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaParecerTecnico_Criterio_CriterioId",
-                table: "PropostaParecerTecnico");                
+                table: "PropostaParecerTecnico");
             migrationBuilder.DropForeignKey(
                 name: "FK_PropostaParecerTecnico_AnaliseTecnica_AnaliseTecnicaId",
                 table: "PropostaParecerTecnico");
@@ -169,7 +169,7 @@ namespace PeD.Data.Migrations
                 name: "FK_PropostaParecerTecnico_AspNetUsers_ResponsavelId",
                 table: "PropostaParecerTecnico");
             migrationBuilder.DropTable(
-                name: "PropostaParecerTecnico");     
+                name: "PropostaParecerTecnico");
 
             // NOVO PERFIL ANALISTA TECNICO
             migrationBuilder.DeleteData(
