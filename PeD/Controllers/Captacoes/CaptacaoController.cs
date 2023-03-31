@@ -49,7 +49,7 @@ namespace PeD.Controllers.Captacoes
 
         public CaptacaoController(CaptacaoService service, IMapper mapper, UserManager<ApplicationUser> userManager,
             IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor,
-            IService<CaptacaoInfo> serviceInfo, ILogger<CaptacaoController> logger, UserService userService, 
+            IService<CaptacaoInfo> serviceInfo, ILogger<CaptacaoController> logger, UserService userService,
             AnalisePedService analisePedService, AnaliseTecnicaService analiseTecService)
             : base(service, mapper)
         {
@@ -160,7 +160,7 @@ namespace PeD.Controllers.Captacoes
 
             var detalhes = Mapper.Map<CaptacaoDetalhesDto>(captacao);
             detalhes.EspecificacaoTecnicaUrl = _urlHelper.Link("DemandaPdf",
-                new {id = captacao.DemandaId, form = "especificacao-tecnica"});
+                new { id = captacao.DemandaId, form = "especificacao-tecnica" });
 
             return Ok(detalhes);
         }
@@ -174,12 +174,12 @@ namespace PeD.Controllers.Captacoes
             var captacao = Service.Get(request.Id);
             if (captacao.Status == Captacao.CaptacaoStatus.Elaboracao && captacao.EnvioCaptacao != null)
             {
-                return BadRequest(new {error = "Captação já está em elaboração"});
+                return BadRequest(new { error = "Captação já está em elaboração" });
             }
 
             if (!contratoService.Exist(request.ContratoId))
             {
-                return BadRequest(new {error = "Contrato sugerido não existe ou foi removido"});
+                return BadRequest(new { error = "Contrato sugerido não existe ou foi removido" });
             }
 
             captacao.Observacoes = request.Observacoes;
@@ -298,8 +298,8 @@ namespace PeD.Controllers.Captacoes
                             c.Id == id
                 )).FirstOrDefault();
 
-            if (captacao == null)  return NotFound();
-            
+            if (captacao == null) return NotFound();
+
             var propostas = propostaService.Filter(q =>
                 q.Include(p => p.Contrato)
                     .Include(p => p.Fornecedor)
@@ -308,18 +308,18 @@ namespace PeD.Controllers.Captacoes
 
             var propostasDto = Mapper.Map<List<PropostaSelecaoDto>>(propostas);
 
-            if (captacao.Status == Captacao.CaptacaoStatus.Encerrada) {
+            if (captacao.Status == Captacao.CaptacaoStatus.Encerrada)
+            {
                 foreach (var proposta in propostasDto)
                 {
                     proposta.AnalisePedFinalizada = _analisePedService.VerificarAnalisePedFinalizada(proposta.Id);
                     proposta.AnaliseTecnicaFinalizada = _analiseTecService.VerificarAnaliseTecnicaFinalizada(proposta.Id);
-                }                
+                }
             }
 
             return propostasDto;
         }
 
-        [Authorize(Policy = Policies.IsUserPeD)]
         [HttpGet("{id}/Propostas/{propostaId}/PlanoTrabalho")]
         public ActionResult DownloadPlanoTrabalho(int id, int propostaId,
             [FromServices] PropostaService propostaService)
@@ -345,7 +345,6 @@ namespace PeD.Controllers.Captacoes
                 $"{captacao.Titulo}-plano-de-trabalho({proposta.Fornecedor.Nome}).pdf");
         }
 
-        [Authorize(Policy = Policies.IsUserPeD)]
         [HttpGet("{id}/Propostas/{propostaId}/Contrato")]
         public ActionResult DownloadContrato(int id, int propostaId,
             [FromServices] PropostaService propostaService)

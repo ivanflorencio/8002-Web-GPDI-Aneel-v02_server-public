@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PeD.Authorizations;
 using PeD.Core.ApiModels.Sistema;
+using PeD.Core.Models;
 using PeD.Core.Models.Sistema;
+using PeD.Data;
 using Swashbuckle.AspNetCore.Annotations;
 using TaesaCore.Controllers;
 using TaesaCore.Interfaces;
@@ -17,6 +20,7 @@ namespace PeD.Controllers.Sistema
     [Authorize("Bearer")]
     public class ItemAjudaController : ControllerCrudBase<ItemAjuda>
     {
+
         public ItemAjudaController(IService<ItemAjuda> service, IMapper mapper) : base(service, mapper)
         {
         }

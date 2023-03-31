@@ -306,11 +306,13 @@ namespace PeD.Services.Demandas
                 demanda.SuperiorDiretoId = superiorDiretoId;
 
                 // Definindo analistas responsáveis
-                if (novoAnalistaPed) {
-                    demanda.AnalistaPedId = analistaPedId;                    
+                if (novoAnalistaPed)
+                {
+                    demanda.AnalistaPedId = analistaPedId;
                 }
-                if (novoAnalistaTecnico) {
-                    demanda.AnalistaTecnicoId = analistaTecnicoId;                    
+                if (novoAnalistaTecnico)
+                {
+                    demanda.AnalistaTecnicoId = analistaTecnicoId;
                 }
 
                 // Definindo tabela de valor Hora Homem da demanda
@@ -319,20 +321,22 @@ namespace PeD.Services.Demandas
                     demanda.TabelaValorHoraId = Int32.Parse(tabelaValorHoraId);
                 }
                 _context.SaveChanges();
-                
+
                 var tabela = _tabelaService.Get(demanda.TabelaValorHoraId.Value);
                 var user = _context.Users.Find(superiorDiretoId);
                 LogService.Incluir(demanda.CriadorId, demanda.Id, "Definiu Superior Direto e Tabela de Valor/Hora",
                     string.Format(" {0} definiu o usuário {1} como superior direto e definiu a tabela: '{2}'", demanda.Criador.NomeCompleto,
                         user.NomeCompleto, tabela.Nome));
 
-                
+
                 //Notificando analistas
                 demanda = GetById(id);
-                if (novoAnalistaPed) {
+                if (novoAnalistaPed)
+                {
                     NotificarAnalistaPed(demanda);
                 }
-                if (novoAnalistaTecnico) {
+                if (novoAnalistaTecnico)
+                {
                     NotificarAnalistaTecnico(demanda);
                 }
 
@@ -353,19 +357,12 @@ namespace PeD.Services.Demandas
 
             if (demanda != null && DemandaProgressCheck.ContainsKey(demanda.EtapaAtual))
             {
-                if (DemandaProgressCheck[demanda.EtapaAtual](demanda, userId))
-                {
-                    demanda.ReprovarReiniciar();
-                    _context.SaveChanges();
-                    NotificarReprovacao(demanda, _context.Users.Find(userId));
-                    var user = _context.Users.Find(userId);
-                    LogService.Incluir(userId, id, "Reiniciou a demanda",
-                        string.Format("O usuário {0} reiniciou a demanda", user.NomeCompleto));
-                }
-                else
-                {
-                    throw new DemandaException("Usuário não tem permissão para reiniciar essa demanda");
-                }
+                demanda.ReprovarReiniciar();
+                _context.SaveChanges();
+                NotificarReprovacao(demanda, _context.Users.Find(userId));
+                var user = _context.Users.Find(userId);
+                LogService.Incluir(userId, id, "Reiniciou a demanda",
+                    string.Format("O usuário {0} reiniciou a demanda", user.NomeCompleto));
             }
         }
 
@@ -380,19 +377,12 @@ namespace PeD.Services.Demandas
 
             if (demanda != null && DemandaProgressCheck.ContainsKey(demanda.EtapaAtual))
             {
-                if (DemandaProgressCheck[demanda.EtapaAtual](demanda, userId))
-                {
-                    demanda.ReprovarPermanente();
-                    _context.SaveChanges();
-                    NotificarReprovacaoPermanente(demanda, _context.Users.Find(userId));
-                    var user = _context.Users.Find(userId);
-                    LogService.Incluir(userId, id, "Arquivou a demanda",
-                        string.Format("O usuário {0} reprovou e arquivou a demanda", user.NomeCompleto));
-                }
-                else
-                {
-                    throw new DemandaException("Usuário não tem permissão para reprovar essa demanda");
-                }
+                demanda.ReprovarPermanente();
+                _context.SaveChanges();
+                NotificarReprovacaoPermanente(demanda, _context.Users.Find(userId));
+                var user = _context.Users.Find(userId);
+                LogService.Incluir(userId, id, "Arquivou a demanda",
+                    string.Format("O usuário {0} reprovou e arquivou a demanda", user.NomeCompleto));
             }
         }
 
@@ -472,7 +462,7 @@ namespace PeD.Services.Demandas
             {
                 DemandaId = id,
                 CriadorId = demanda.CriadorId,
-                TemaId = temaId > 0 ? temaId : (int?) null,
+                TemaId = temaId > 0 ? temaId : (int?)null,
                 TemaOutro = temaOutro,
                 Titulo = demanda.Titulo,
                 Status = Captacao.CaptacaoStatus.Pendente,
@@ -848,13 +838,14 @@ namespace PeD.Services.Demandas
         public void NotificarAnalistaTecnico(Demanda demanda, bool isFimCaptacao = false)
         {
             if (demanda == null) return;
-            
+
             var url = Configuration.GetValue<string>("Url");
             var titulo = $"Demanda para Análise Técnica:\"{demanda.Titulo}\"";
             var body =
                 $"O usuário {demanda.Criador.NomeCompleto} atribuiu as propostas da demanda \"{demanda.Titulo}\" para que você faça a Análise Técnica. Clique abaixo para mais detalhes.";
 
-            if (isFimCaptacao) {
+            if (isFimCaptacao)
+            {
                 body =
                 $"A demanda \"{demanda.Titulo}\" está com a captação finalizada. Verifique se existem propostas com Análise Técnica pendentes ou abertas. Clique abaixo para mais detalhes.";
             }
@@ -872,12 +863,13 @@ namespace PeD.Services.Demandas
             var titulo = $"Demanda para Análise P&D:\"{demanda.Titulo}\"";
             var body =
                 $"O usuário {demanda.Criador.NomeCompleto} atribuiu as propostas da demanda \"{demanda.Titulo}\" para que você faça a Análise P&D. Clique abaixo para mais detalhes.";
-            
-            if (isFimCaptacao) {
+
+            if (isFimCaptacao)
+            {
                 body =
                 $"A demanda \"{demanda.Titulo}\" está com a captação finalizada. Verifique se existem propostas com Análise P&D pendentes ou abertas. Clique abaixo para mais detalhes.";
             }
-            
+
             _sendGridService.Send(demanda.AnalistaPed.Email, titulo, body,
                 actionLabel: "Análise P&D",
                 actionUrl: $"{url}/analise-ped").Wait();

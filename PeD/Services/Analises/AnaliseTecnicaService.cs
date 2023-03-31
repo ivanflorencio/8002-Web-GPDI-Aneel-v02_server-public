@@ -54,6 +54,8 @@ namespace PeD.Services.Analises
                     proposta.Participacao == StatusParticipacao.Aceito
                     || proposta.Participacao == StatusParticipacao.Concluido
                 )
+                && proposta.PlanoTrabalhoAprovacao == StatusAprovacao.Aprovado
+                && proposta.ContratoAprovacao == StatusAprovacao.Aprovado
                 && !(from analise in analises
                      where analise.PropostaId == proposta.Id
                      && (

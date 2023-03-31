@@ -1,13 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
@@ -20,9 +13,16 @@ using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using GlobalExceptionHandler.WebApi;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using MimeDetective;
 using MimeDetective.Definitions;
@@ -39,6 +39,7 @@ using PeD.Core.Models;
 using PeD.Data;
 using PeD.Middlewares;
 using PeD.Services;
+using PeD.Services.Analises;
 using PeD.Services.Captacoes;
 using PeD.Services.Cronograma;
 using PeD.Services.Demandas;
@@ -52,7 +53,6 @@ using TaesaCore.Services;
 using CaptacaoService = PeD.Services.Captacoes.CaptacaoService;
 using Log = Serilog.Log;
 using Path = System.IO.Path;
-using PeD.Services.Analises;
 
 namespace PeD
 {
@@ -93,7 +93,7 @@ namespace PeD
                         .ScopeExtensions(allowedFiles)
                         .TrimMeta() //If you don't care about the meta information (definition author, creation date, etc)
                         .TrimDescription() //If you don't care about the description
-                        // .TrimMimeType() //If you don't care about the mime type
+                                           // .TrimMimeType() //If you don't care about the mime type
                         .ToImmutableArray()
                     ;
                 return new ContentInspectorBuilder() { Definitions = scopedDefinitions }.Build();
@@ -376,7 +376,16 @@ namespace PeD
                 services.AddDbContext<GestorDbContext>(options =>
                     {
                         options.UseSqlServer(connectionString, sqlServerOptions => sqlServerOptions.CommandTimeout(120));
-                        //options.EnableSensitiveDataLogging();
+                    }
+                );
+            }
+
+            var connectionStringContabPed = Configuration.GetConnectionString("ContabPed");
+            if (!string.IsNullOrWhiteSpace(connectionStringContabPed))
+            {
+                services.AddDbContext<ContabPedDbContext>(options =>
+                    {
+                        options.UseSqlServer(connectionStringContabPed, sqlServerOptions => sqlServerOptions.CommandTimeout(120));
                     }
                 );
             }

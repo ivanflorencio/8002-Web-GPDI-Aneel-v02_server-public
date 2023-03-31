@@ -81,10 +81,10 @@ namespace PeD.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
-            #if DEBUG
+#if DEBUG
             builder.UseLoggerFactory(_loggerFactory);
             builder.EnableSensitiveDataLogging();
-            #endif
+#endif
         }
 
 
@@ -104,6 +104,7 @@ namespace PeD.Data
             {
                 dmdc.Property(dc => dc.CreatedAt).HasDefaultValueSql("getdate()");
             });
+
             CommonContext(modelBuilder);
             CaptacaoContext(modelBuilder);
             PropostaContext(modelBuilder);
@@ -153,11 +154,11 @@ namespace PeD.Data
 
             builder.Entity<CaptacaoFornecedor>()
                 .ToTable("CaptacoesFornecedores")
-                .HasKey(a => new {a.FornecedorId, PropostaConfiguracaoId = a.CaptacaoId});
+                .HasKey(a => new { a.FornecedorId, PropostaConfiguracaoId = a.CaptacaoId });
 
             builder.Entity<CaptacaoSugestaoFornecedor>()
                 .ToTable("CaptacaoSugestoesFornecedores")
-                .HasKey(a => new {a.FornecedorId, a.CaptacaoId});
+                .HasKey(a => new { a.FornecedorId, a.CaptacaoId });
 
             builder.Entity<CaptacaoSubTema>();
 
@@ -170,7 +171,7 @@ namespace PeD.Data
 
             builder.Entity<Proposta>(builderProposta =>
             {
-                builderProposta.HasIndex(p => new {p.CaptacaoId, p.FornecedorId}).IsUnique();
+                builderProposta.HasIndex(p => new { p.CaptacaoId, p.FornecedorId }).IsUnique();
                 builderProposta.HasOne(p => p.Relatorio);
                 builderProposta.HasOne(p => p.Contrato).WithOne(c => c.Proposta);
                 builderProposta.Property(p => p.Guid).HasDefaultValueSql("NEWID()");
@@ -178,7 +179,7 @@ namespace PeD.Data
             });
             builder.Entity<PropostaArquivo>(b =>
             {
-                b.HasKey(pa => new {pa.PropostaId, pa.ArquivoId});
+                b.HasKey(pa => new { pa.PropostaId, pa.ArquivoId });
                 b.ToTable("PropostasArquivos");
             });
 
@@ -235,7 +236,7 @@ namespace PeD.Data
             });
             builder.Entity<PeD.Core.Models.Propostas.AlocacaoRhHorasMes>(b =>
             {
-                b.HasKey(br => new {br.AlocacaoRhId, br.Mes});
+                b.HasKey(br => new { br.AlocacaoRhId, br.Mes });
                 b.ToTable("PropostasAlocacaoRhHorasMeses");
             });
             builder.Entity<AlocacaoRm>(b =>
@@ -252,8 +253,8 @@ namespace PeD.Data
             builder.Entity<Risco>();
             builder.Entity<ContratoComentario>(b => { b.ToTable("ContratoComentarios"); });
             builder.Entity<PlanoComentario>(b => { b.ToTable("PlanoComentarios"); });
-            builder.Entity<PlanoComentarioFile>(b => { b.HasKey(pf => new {pf.ComentarioId, pf.FileId}); });
-            builder.Entity<ContratoComentarioFile>(b => { b.HasKey(pf => new {pf.ComentarioId, pf.FileId}); });
+            builder.Entity<PlanoComentarioFile>(b => { b.HasKey(pf => new { pf.ComentarioId, pf.FileId }); });
+            builder.Entity<ContratoComentarioFile>(b => { b.HasKey(pf => new { pf.ComentarioId, pf.FileId }); });
             builder.Entity<AlocacaoInfo>(b =>
             {
                 b.Property(a => a.EmpresaFinanciadoraFuncao).HasConversion<string>();
@@ -280,14 +281,14 @@ namespace PeD.Data
             });
             builder.Entity<ProjetoArquivo>(b =>
             {
-                b.HasKey(pa => new {pa.ProjetoId, pa.ArquivoId});
+                b.HasKey(pa => new { pa.ProjetoId, pa.ArquivoId });
                 b.ToTable("ProjetoArquivos");
             });
 
 
             builder.Entity<ProjetoSubTema>(b =>
             {
-                b.HasKey(e => new {e.ProjetoId, e.SubTemaId});
+                b.HasKey(e => new { e.ProjetoId, e.SubTemaId });
                 b.ToTable("ProjetosSubtemas");
             });
             builder.Entity<Core.Models.Projetos.Empresa>();
@@ -334,7 +335,7 @@ namespace PeD.Data
             });
             builder.Entity<AlocacaoRhHorasMes>(b =>
             {
-                b.HasKey(a => new {a.AlocacaoRhId, a.Mes});
+                b.HasKey(a => new { a.AlocacaoRhId, a.Mes });
                 b.ToTable("ProjetosAlocacaoRhHorasMeses");
             });
             builder.Entity<Core.Models.Projetos.RecursoMaterial.AlocacaoRm>(b =>
@@ -427,7 +428,7 @@ namespace PeD.Data
             {
                 b.ToTable("ProjetosRelatoriosPropriedadesIntelectuaisInventores");
                 b.HasOne(p => p.Recurso).WithMany().HasForeignKey(p => p.RecursoId).OnDelete(DeleteBehavior.NoAction);
-                b.HasKey(i => new {i.PropriedadeId, i.RecursoId});
+                b.HasKey(i => new { i.PropriedadeId, i.RecursoId });
             });
 
             builder.Entity<RelatorioEtapa>(b =>
