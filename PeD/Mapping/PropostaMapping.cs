@@ -90,9 +90,11 @@ namespace PeD.Mapping
                 .ForMember(dest => dest.EmpresaFinanciadora, opt =>
                     opt.MapFrom(src => src.EmpresaFinanciadora.RazaoSocial))
                 .ForMember(dest => dest.Recurso, opt => opt
-                    .MapFrom(src => src.Recurso.NomeCompleto))
+                    .MapFrom(src => src.Recurso.NomeCompleto + $" ({src.Recurso.Empresa.Nome})"))
                 .ForMember(dest => dest.Etapa, opt => opt
                     .MapFrom(src => src.Etapa.Ordem))
+                .ForMember(dest => dest.Modalidade, opt => opt
+                    .MapFrom(src => src.Recurso.EmpresaId == src.EmpresaFinanciadoraId ? (src.EmpresaFinanciadora.Nome.ToUpper() == "NORTE ENERGIA" ? "Custo Operacional NESA" : "Contrapartida") : "Despesa do Projeto"))
                 .ForMember(dest => dest.Valor, opt =>
                     opt.MapFrom(src => src.Recurso.ValorHora * src.HorasMeses.Sum(m => m.Horas)))
                 .ForMember(d => d.HoraMeses, o => o.MapFrom(s => s.HorasMeses.ToDictionary(i => i.Mes, i => i.Horas)))
@@ -111,6 +113,8 @@ namespace PeD.Mapping
                     opt.MapFrom(src => src.EmpresaRecebedora.Nome))
                 .ForMember(dest => dest.Recurso, opt => opt.MapFrom(src =>
                     src.Recurso.Nome))
+                .ForMember(dest => dest.Modalidade, opt => opt
+                    .MapFrom(src => src.EmpresaRecebedoraId == src.EmpresaFinanciadoraId ? (src.EmpresaFinanciadora.Nome.ToUpper() == "NORTE ENERGIA" ? "Custo Operacional NESA" : "Contrapartida") : "Despesa do Projeto"))
                 .ForMember(dest => dest.RecursoCategoria, opt => opt.MapFrom(src =>
                     src.Recurso.CategoriaContabil.Nome))
                 .ForMember(dest => dest.Valor, opt =>

@@ -13,6 +13,8 @@ namespace PeD.Core.ApiModels.Propostas
         public int? EmpresaFinanciadoraId { get; set; }
         public string EmpresaFinanciadora { get; set; }
 
+        public string Modalidade { get; set; }
+
         public int? EmpresaRecebedoraId { get; set; }
         public string EmpresaRecebedora { get; set; }
 

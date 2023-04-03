@@ -302,7 +302,9 @@ namespace PeD.Services.Cronograma
 
         private void RegistrarContrapartida(int mes, double valor)
         {
-            contrapartidaMesValor[mes] += valor;
+            if (contrapartidaMesValor.ContainsKey(mes))
+                contrapartidaMesValor[mes] += valor;
+            else contrapartidaMesValor[mes] = valor;
         }
 
         public CronogramaConsolidadoDto GetCronogramaConsolidadoSimulado(List<CronogramaSimuladoRequest> projetos)
