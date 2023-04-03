@@ -62,8 +62,10 @@ namespace PeD.Services.Cronograma
                                 int indexMes = 0;
                                 foreach (var mes in etapa.Meses)
                                 {
-                                    desembolsos[mes] += (double)orcamento.Custo * horasEtapa[indexMes];
-
+                                    if (orcamento.Recebedora.ToUpper() == "NORTE ENERGIA" || orcamento.FinanciadoraId != orcamento.RecebedoraId)
+                                    {
+                                        desembolsos[mes] += (double)orcamento.Custo * horasEtapa[indexMes];
+                                    }
                                     //Registrando Contrapartida
                                     if (orcamento.Financiadora.ToUpper() != "NORTE ENERGIA")
                                     {
@@ -76,8 +78,10 @@ namespace PeD.Services.Cronograma
                         }
                         else
                         {
-                            desembolsos[etapa.Meses[0]] += (double)orcamento.Total;
-
+                            if (orcamento.Recebedora.ToUpper() == "NORTE ENERGIA" || orcamento.FinanciadoraId != orcamento.RecebedoraId)
+                            {
+                                desembolsos[etapa.Meses[0]] += (double)orcamento.Total;
+                            }
                             //Registrando Contrapartida
                             if (orcamento.Financiadora.ToUpper() != "NORTE ENERGIA")
                                 RegistrarContrapartida(etapa.Meses[0], (double)orcamento.Total);

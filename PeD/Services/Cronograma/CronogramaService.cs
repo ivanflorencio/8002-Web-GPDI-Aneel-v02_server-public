@@ -179,7 +179,9 @@ namespace PeD.Services.Cronograma
             var alocacaoRm = etapa.RecursosMateriaisAlocacoes.ToList();
 
             empresas.AddRange(alocacaoRh.Select(r => r.EmpresaFinanciadora));
+            empresas.AddRange(alocacaoRh.Select(r => r.Recurso.Empresa));
             empresas.AddRange(alocacaoRm.Select(r => r.EmpresaFinanciadora));
+            empresas.AddRange(alocacaoRm.Select(r => r.EmpresaRecebedora));
             empresas = empresas.GroupBy(e => e.Id).Select(e => e.First()).ToList();
 
             empresas.ForEach(e =>
