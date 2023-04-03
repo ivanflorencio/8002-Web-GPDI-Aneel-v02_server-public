@@ -20,6 +20,7 @@ namespace PeD.Services.Cronograma
         private int saltoId = 1000000;
         private List<Orcamento> OrcamentosProjeto = new List<Orcamento>();
         private List<RegistroFinanceiroInfo> RegistrosFinanceirosProjeto = new List<RegistroFinanceiroInfo>();
+        private Dictionary<int, double> contrapartidaMesValor = new Dictionary<int, double>();
         private Dictionary<int, double> valorHoraRecurso = new Dictionary<int, double>();
         private DbSet<Etapa> _etapas;
         private DbSet<Projeto> _projetos;
@@ -62,6 +63,13 @@ namespace PeD.Services.Cronograma
                                 foreach (var mes in etapa.Meses)
                                 {
                                     desembolsos[mes] += (double)orcamento.Custo * horasEtapa[indexMes];
+
+                                    //Registrando Contrapartida
+                                    if (orcamento.Financiadora.ToUpper() != "NORTE ENERGIA")
+                                    {
+                                        RegistrarContrapartida(mes, (double)(orcamento.Custo * horasEtapa[indexMes]));
+                                    }
+
                                     indexMes++;
                                 }
                             }
@@ -69,6 +77,10 @@ namespace PeD.Services.Cronograma
                         else
                         {
                             desembolsos[etapa.Meses[0]] += (double)orcamento.Total;
+
+                            //Registrando Contrapartida
+                            if (orcamento.Financiadora.ToUpper() != "NORTE ENERGIA")
+                                RegistrarContrapartida(etapa.Meses[0], (double)orcamento.Total);
                         }
                     }
                 }
@@ -272,11 +284,21 @@ namespace PeD.Services.Cronograma
             if (projeto != null)
             {
                 duracaoProjeto = projeto.Duracao;
+
+                //Zerando hash de contrapartidas
+                for (int i = 0; i < duracaoProjeto; i++) contrapartidaMesValor.Add(i + 1, 0);
+
                 cronograma.Inicio = GetInicio(projeto);
                 if (!consolidado) cronograma.Etapas = GetEtapas(projeto);
                 cronograma.Empresas = GetEmpresas(projeto);
+                cronograma.Contrapartidas = contrapartidaMesValor.Select(x => x.Value).ToList();
             }
             return cronograma;
+        }
+
+        private void RegistrarContrapartida(int mes, double valor)
+        {
+            contrapartidaMesValor[mes] += valor;
         }
 
         public CronogramaConsolidadoDto GetCronogramaConsolidadoSimulado(List<CronogramaSimuladoRequest> projetos)
@@ -357,6 +379,7 @@ namespace PeD.Services.Cronograma
                 }
                 //Recuperando cronograma de cada projeto
                 duracaoProjeto = projeto.Duracao;
+
                 if (projeto.Id < saltoId)
                 {
                     cronogramasProjetos.Add(projeto.Id, new CronogramaDto

@@ -45,6 +45,7 @@ namespace PeD.Mapping
                 .ForMember(r => r.Name, opt => opt.MapFrom(src => src.Parent.Parent.Titulo));
 
             CreateMap<PropostaRelatorioDiretoria, PropostaRelatorioDiretoriaDto>();
+            CreateMap<PropostaNotaTecnica, PropostaNotaTecnicaDto>();
 
             CreateMap<PlanoTrabalho, PlanoTrabalhoDto>()
                 .ForMember(dest => dest.Arquivos, options =>

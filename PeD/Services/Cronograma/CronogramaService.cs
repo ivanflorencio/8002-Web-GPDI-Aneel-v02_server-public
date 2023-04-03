@@ -4,9 +4,9 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using PeD.Core.ApiModels.Cronograma;
 using PeD.Core.Models.Propostas;
+using PeD.Data;
 using TaesaCore.Interfaces;
 using TaesaCore.Services;
-using PeD.Data;
 
 namespace PeD.Services.Cronograma
 {
@@ -15,12 +15,14 @@ namespace PeD.Services.Cronograma
         private int duracaoProjeto = 0;
         private Dictionary<int, List<AlocacaoRh>> alocacaoRhEmpresa = new Dictionary<int, List<AlocacaoRh>>();
         private Dictionary<int, List<AlocacaoRm>> alocacaoRmEmpresa = new Dictionary<int, List<AlocacaoRm>>();
+
+        private Dictionary<int, double> contrapartidaMesValor = new Dictionary<int, double>();
         private Dictionary<int, double> valorHoraRecurso = new Dictionary<int, double>();
         private Random RANDOM = new Random();
         private DbSet<Etapa> _etapas;
         private DbSet<Proposta> _propostas;
         private DbSet<AlocacaoRhHorasMes> _horasMes;
-        
+
         public CronogramaService(IRepository<Proposta> repository, GestorDbContext context) : base(repository)
         {
             _etapas = context.Set<Etapa>();
@@ -28,44 +30,62 @@ namespace PeD.Services.Cronograma
             _horasMes = context.Set<AlocacaoRhHorasMes>();
         }
 
-        private Dictionary<int, double> GetDesembolsosEmpresa(Proposta proposta, Empresa empresa) {
+        private Dictionary<int, double> GetDesembolsosEmpresa(Proposta proposta, Empresa empresa)
+        {
             var desembolsos = new Dictionary<int, double>();
 
             //Zerando hash de desembolsos
-            for (int i = 0; i < duracaoProjeto; i++) desembolsos.Add(i+1, 0);
+            for (int i = 0; i < duracaoProjeto; i++) desembolsos.Add(i + 1, 0);
 
-            //Recuperando desembolsos de RH
-            var alocacoesRhEmpresa = alocacaoRhEmpresa.ContainsKey(empresa.Id) ? alocacaoRhEmpresa[empresa.Id] : new List<AlocacaoRh>();
-            var horas = _horasMes.Where(x => alocacoesRhEmpresa.Select(a=>a.Id).Contains(x.AlocacaoRhId)).ToList();
-            for (int mes = 1; mes <= duracaoProjeto; mes++) {
-                var total = horas.Where(x => x.Mes == mes).Sum(x => x.Horas * valorHoraRecurso[x.AlocacaoRhId]);                
-                desembolsos[mes] += total;            
+            //Recuperando desembolsos de RH (Despesas do Projeto: Empresa Financiadora = NESA)
+            var alocacoesRhEmpresa = alocacaoRhEmpresa.ContainsKey(empresa.Id)
+                                ? alocacaoRhEmpresa[empresa.Id].Where(a => a.EmpresaFinanciadora.Nome.ToUpper() == "NORTE ENERGIA").ToList()
+                                : new List<AlocacaoRh>();
+
+            var horas = _horasMes.Where(x => alocacoesRhEmpresa.Select(a => a.Id).Contains(x.AlocacaoRhId)).ToList();
+            for (int mes = 1; mes <= duracaoProjeto; mes++)
+            {
+                var total = horas.Where(x => x.Mes == mes).Sum(x => x.Horas * valorHoraRecurso[x.AlocacaoRhId]);
+                desembolsos[mes] += total;
             }
+
 
             //Recuperando desembolsos de RM
             var alocacoesRmEmpresa = alocacaoRmEmpresa.ContainsKey(empresa.Id) ? alocacaoRmEmpresa[empresa.Id] : new List<AlocacaoRm>();
-            var etapas = proposta.Etapas?.Where(x => alocacoesRmEmpresa.Select(a=>a.EtapaId).Contains(x.Id)).ToList();
-            etapas?.ForEach(e => {
-                e.Meses.ForEach(mes => {
-                    var total = (double) etapas
-                                .Where(x=>x.Id==e.Id)
+            var etapas = proposta.Etapas?.Where(x => alocacoesRmEmpresa.Select(a => a.EtapaId).Contains(x.Id)).ToList();
+            etapas?.ForEach(e =>
+            {
+                e.Meses.ForEach(mes =>
+                {
+                    var total = (double)etapas
+                                .Where(x => x.Id == e.Id)
                                 .Sum(x => x.RecursosMateriaisAlocacoes
-                                    .Where(x=>x.MesDesembolso==mes && x.EmpresaFinanciadora.Id == empresa.Id)
+                                    .Where(
+                                            x => x.MesDesembolso == mes
+                                            && x.EmpresaRecebedoraId == empresa.Id
+                                            && (
+                                                x.EmpresaRecebedora.Nome.ToUpper() == "NORTE ENERGIA"
+                                                || x.EmpresaFinanciadoraId != x.EmpresaRecebedoraId
+                                            )
+                                        )
                                     .Sum(r => r.Valor)
-                                );                    
+                                );
                     desembolsos[mes] += total;
                 });
-                
+
             });
-        
+
             return desembolsos;
         }
 
-        private List<EmpresaCronogramaDto> GetEmpresas(Proposta proposta) {
+        private List<EmpresaCronogramaDto> GetEmpresas(Proposta proposta)
+        {
             var empresas = new List<EmpresaCronogramaDto>();
-            proposta.Empresas.ForEach(empresa => {
+            proposta.Empresas.ForEach(empresa =>
+            {
                 var desembolso = GetDesembolsosEmpresa(proposta, empresa);
-                empresas.Add(new EmpresaCronogramaDto {
+                empresas.Add(new EmpresaCronogramaDto
+                {
                     Nome = empresa.Nome,
                     Desembolso = desembolso.Values.ToList(),
                     Total = Enumerable.Sum(desembolso.Values.ToList())
@@ -74,47 +94,82 @@ namespace PeD.Services.Cronograma
             return empresas;
         }
 
-        private void RegistrarAlocacaoRh(int empresaId, List<AlocacaoRh> alocacao) {
-            if (alocacaoRhEmpresa.ContainsKey(empresaId)) {
+        private void RegistrarAlocacaoRh(int empresaId, List<AlocacaoRh> alocacao)
+        {
+            if (alocacaoRhEmpresa.ContainsKey(empresaId))
+            {
                 alocacaoRhEmpresa[empresaId].AddRange(alocacao);
-            } else {
+            }
+            else
+            {
                 alocacaoRhEmpresa.Add(empresaId, alocacao);
             }
-            alocacao.ForEach(a => {
-                if (!valorHoraRecurso.ContainsKey(a.Id)) {
-                    valorHoraRecurso.Add(a.Id, (double) a.Recurso.ValorHora);
-                }   
-            });            
+            alocacao.ForEach(a =>
+            {
+                if (!valorHoraRecurso.ContainsKey(a.Id))
+                {
+                    valorHoraRecurso.Add(a.Id, (double)a.Recurso.ValorHora);
+                    //Registrando Contrapartida
+                    if (a.EmpresaFinanciadora.Nome.ToUpper() != "NORTE ENERGIA")
+                    {
+                        foreach (var horaMes in a.HorasMeses)
+                        {
+                            RegistrarContrapartida(horaMes.Mes, (double)(horaMes.Horas * a.Recurso.ValorHora));
+                        }
+                    }
+                }
+            });
+
         }
 
-        private void RegistrarAlocacaoRm(int empresaId, List<AlocacaoRm> alocacao) {
-            if (alocacaoRmEmpresa.ContainsKey(empresaId)) {
+        private void RegistrarContrapartida(int mes, double valor)
+        {
+            contrapartidaMesValor[mes] += valor;
+        }
+
+        private void RegistrarAlocacaoRm(int empresaId, List<AlocacaoRm> alocacao, string categoriaContabil)
+        {
+            if (alocacaoRmEmpresa.ContainsKey(empresaId))
+            {
                 alocacaoRmEmpresa[empresaId].AddRange(alocacao);
-            } else {
+            }
+            else
+            {
                 alocacaoRmEmpresa.Add(empresaId, alocacao);
             }
+            //Registrando Contrapartida
+            foreach (var a in alocacao)
+            {
+                if (a.EmpresaFinanciadora.Nome.ToUpper() != "NORTE ENERGIA" && a.Recurso.CategoriaContabil.Valor == categoriaContabil)
+                    RegistrarContrapartida(a.MesDesembolso, (double)a.Valor);
+            }
         }
 
-        private (int qtd, double valor)  GetQuantidadeRecurso(List<AlocacaoRh> alocacaoRh, List<AlocacaoRm> alocacaoRm, Empresa empresa, string categoriaContabil) {                    
-            if (categoriaContabil == "RH") {
-                var alocacao = alocacaoRh.Where(r => r.EmpresaFinanciadora.Id == empresa.Id).ToList();
+        private (int qtd, double valor) GetQuantidadeRecurso(List<AlocacaoRh> alocacaoRh, List<AlocacaoRm> alocacaoRm, Empresa empresa, string categoriaContabil)
+        {
+            if (categoriaContabil == "RH")
+            {
+                var alocacao = alocacaoRh.Where(r => r.Recurso.EmpresaId == empresa.Id).ToList();
                 RegistrarAlocacaoRh(empresa.Id, alocacao);
                 return (
-                    Decimal.ToInt32(alocacao.Sum(x => x.HorasMeses.Sum(y => y.Horas))), 
-                    (double) alocacao.Sum(x => x.Recurso.ValorHora * x.HorasMeses.Sum(y => y.Horas))
+                    Decimal.ToInt32(alocacao.Sum(x => x.HorasMeses.Sum(y => y.Horas))),
+                    (double)alocacao.Sum(x => x.Recurso.ValorHora * x.HorasMeses.Sum(y => y.Horas))
                 );
-            } else {
+            }
+            else
+            {
                 var alocacao = alocacaoRm.Where(r => r.EmpresaFinanciadora.Id == empresa.Id).ToList();
-                RegistrarAlocacaoRm(empresa.Id, alocacao);
+                RegistrarAlocacaoRm(empresa.Id, alocacao, categoriaContabil);
                 var alocacaoCategoria = alocacao.Where(r => r.Recurso.CategoriaContabil.Valor == categoriaContabil);
                 return (
-                    Decimal.ToInt32(alocacaoCategoria.Sum(x => x.Quantidade)), 
-                    (double) alocacaoCategoria.Sum(x => x.Valor)
+                    Decimal.ToInt32(alocacaoCategoria.Sum(x => x.Quantidade)),
+                    (double)alocacaoCategoria.Sum(x => x.Valor)
                 );
             }
         }
 
-        private List<RecursoDto> GetRecursos(Etapa etapa) {
+        private List<RecursoDto> GetRecursos(Etapa etapa)
+        {
 
             var empresas = new List<Empresa>();
             var recursos = new List<RecursoDto>();
@@ -126,15 +181,16 @@ namespace PeD.Services.Cronograma
             empresas.AddRange(alocacaoRh.Select(r => r.EmpresaFinanciadora));
             empresas.AddRange(alocacaoRm.Select(r => r.EmpresaFinanciadora));
             empresas = empresas.GroupBy(e => e.Id).Select(e => e.First()).ToList();
-            
-            empresas.ForEach(e => {
+
+            empresas.ForEach(e =>
+            {
                 var recurso = new RecursoDto();
                 recurso.Empresa = e.Nome;
 
                 var totalAudConFin = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "AC");
                 var totalMatConsu = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "MC");
                 var totalMatPerm = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "MP");
-                var totalViaDia =GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "VD");
+                var totalViaDia = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "VD");
                 var totalRH = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "RH");
                 var totalServTerc = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "ST");
                 var totalStartups = GetQuantidadeRecurso(alocacaoRh, alocacaoRm, e, "SU");
@@ -143,7 +199,7 @@ namespace PeD.Services.Cronograma
                 recurso.QtdAudConFin = totalAudConFin.qtd;
                 recurso.QtdMatConsu = totalMatConsu.qtd;
                 recurso.QtdMatPerm = totalMatPerm.qtd;
-                recurso.QtdViaDia =totalViaDia.qtd;
+                recurso.QtdViaDia = totalViaDia.qtd;
                 recurso.QtdRH = totalRH.qtd;
                 recurso.QtdServTerc = totalServTerc.qtd;
                 recurso.QtdStartups = totalStartups.qtd;
@@ -177,7 +233,7 @@ namespace PeD.Services.Cronograma
                 recursoSoma.ValorServTerc += recurso.ValorServTerc;
                 recursoSoma.ValorStartups = recurso.ValorStartups;
                 recursoSoma.ValorOutros += recurso.ValorOutros;
-                                
+
                 recursoSoma.Total += recurso.Total;
 
                 recursos.Add(recurso);
@@ -188,45 +244,49 @@ namespace PeD.Services.Cronograma
             return recursos;
         }
 
-        private List<EtapaCronogramaDto> GetEtapas(Proposta proposta) {
+        private List<EtapaCronogramaDto> GetEtapas(Proposta proposta)
+        {
 
             var etapas = new List<EtapaCronogramaDto>();
 
-            var etapasProposta = _etapas.Where(e => e.Proposta.Guid == proposta.Guid)                                        
+            var etapasProposta = _etapas.Where(e => e.Proposta.Guid == proposta.Guid)
                                         //Produto
-                                        .Include(x=>x.Produto)                                        
-                                        .ThenInclude(x=>x.FaseCadeia)
-                                        .Include(x=>x.Produto)                                        
-                                        .ThenInclude(x=>x.TipoDetalhado)
-                                        .Include(x=>x.Produto)                                        
-                                        .ThenInclude(x=>x.ProdutoTipo)
+                                        .Include(x => x.Produto)
+                                        .ThenInclude(x => x.FaseCadeia)
+                                        .Include(x => x.Produto)
+                                        .ThenInclude(x => x.TipoDetalhado)
+                                        .Include(x => x.Produto)
+                                        .ThenInclude(x => x.ProdutoTipo)
                                         //Recursos Materiais
-                                        .Include(x=>x.RecursosMateriaisAlocacoes)
-                                        .ThenInclude(x=>x.EmpresaFinanciadora)
-                                        .Include(x=>x.RecursosMateriaisAlocacoes)
-                                        .ThenInclude(x=>x.Recurso)
-                                        .ThenInclude(x=>x.CategoriaContabil)                                        
+                                        .Include(x => x.RecursosMateriaisAlocacoes)
+                                        .ThenInclude(x => x.EmpresaFinanciadora)
+                                        .Include(x => x.RecursosMateriaisAlocacoes)
+                                        .ThenInclude(x => x.Recurso)
+                                        .ThenInclude(x => x.CategoriaContabil)
                                         //Recursos Humanos
-                                        .Include(x=>x.RecursosHumanosAlocacoes)
-                                        .ThenInclude(x=>x.EmpresaFinanciadora)                                        
-                                        .Include(x=>x.RecursosHumanosAlocacoes)
-                                        .ThenInclude(x=>x.HorasMeses)
-                                        .Include(x=>x.RecursosHumanosAlocacoes)
-                                        .ThenInclude(x=>x.Recurso)
-                                        .OrderBy(x=>x.Ordem).ToList();                        
+                                        .Include(x => x.RecursosHumanosAlocacoes)
+                                        .ThenInclude(x => x.EmpresaFinanciadora)
+                                        .Include(x => x.RecursosHumanosAlocacoes)
+                                        .ThenInclude(x => x.HorasMeses)
+                                        .Include(x => x.RecursosHumanosAlocacoes)
+                                        .ThenInclude(x => x.Recurso)
+                                        .OrderBy(x => x.Ordem).ToList();
             var numero = 1;
-            etapasProposta.ForEach(e => {
-                etapas.Add(new EtapaCronogramaDto {
+            etapasProposta.ForEach(e =>
+            {
+                etapas.Add(new EtapaCronogramaDto
+                {
                     Numero = e.Ordem,
                     Etapa = e.DescricaoAtividades,
                     Meses = e.Meses,
                     Produto = e.Produto.Titulo,
-                    Detalhe = new DetalheEtapaDto {
+                    Detalhe = new DetalheEtapaDto
+                    {
                         Etapa = e.DescricaoAtividades,
                         ProdutoTitulo = e.Produto.Titulo,
                         ProdutoDescricao = e.Produto.Descricao,
-                        InicioPeriodo = proposta.DataParticipacao.Value.AddMonths(e.Meses.Min()-1),
-                        FimPeriodo = proposta.DataParticipacao.Value.AddMonths(e.Meses.Max()-1),
+                        InicioPeriodo = proposta.DataParticipacao.Value.AddMonths(e.Meses.Min() - 1),
+                        FimPeriodo = proposta.DataParticipacao.Value.AddMonths(e.Meses.Max() - 1),
                         ProdutoTipoDetalhado = e.Produto.TipoDetalhado.Nome,
                         FaseCadeia = e.Produto.FaseCadeia.Nome,
                         ProdutoTipo = e.Produto.ProdutoTipo.Nome,
@@ -235,26 +295,33 @@ namespace PeD.Services.Cronograma
                 });
                 numero++;
             });
-            
+
             return etapas;
         }
 
-        private InicioCronogramaDto GetInicio(Proposta proposta) {
-            return new InicioCronogramaDto {
-                    Ano = proposta.DataParticipacao.Value.Year, 
-                    Mes = proposta.DataParticipacao.Value.Month, 
-                    NumeroMeses = proposta.Duracao
-                };
+        private InicioCronogramaDto GetInicio(Proposta proposta)
+        {
+            return new InicioCronogramaDto
+            {
+                Ano = proposta.DataParticipacao.Value.Year,
+                Mes = proposta.DataParticipacao.Value.Month,
+                NumeroMeses = proposta.Duracao
+            };
         }
-        
+
         public CronogramaDto GetCronograma(Guid guid)
         {
             var proposta = this._propostas.Where(x => x.Guid == guid).Include(x => x.Empresas).FirstOrDefault();
             duracaoProjeto = proposta.Duracao;
+
+            //Zerando hash de contrapartidas
+            for (int i = 0; i < duracaoProjeto; i++) contrapartidaMesValor.Add(i + 1, 0);
+
             var cronograma = new CronogramaDto();
             cronograma.Inicio = GetInicio(proposta);
             cronograma.Etapas = GetEtapas(proposta);
             cronograma.Empresas = GetEmpresas(proposta);
+            cronograma.Contrapartidas = contrapartidaMesValor.Select(x => x.Value).ToList();
             return cronograma;
         }
 
@@ -265,7 +332,7 @@ namespace PeD.Services.Cronograma
             etapa.Etapa = "";
             etapa.ProdutoDescricao = "";
             etapa.InicioPeriodo = new DateTime(2022, 8, 1);
-            etapa.FimPeriodo = new DateTime(2022, 11, 1);            
+            etapa.FimPeriodo = new DateTime(2022, 11, 1);
             return etapa;
         }
 

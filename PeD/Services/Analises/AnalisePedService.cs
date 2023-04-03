@@ -139,6 +139,16 @@ namespace PeD.Services.Analises
             this.SalvarAnalisePed(analisePed);
         }
 
+        public void SolicitarReanaliseProposta(int propostaId)
+        {
+            var analisePed = _context.Set<AnalisePed>().Where(x => x.PropostaId == propostaId).FirstOrDefault();
+            if (analisePed != null)
+            {
+                analisePed.Status = "Pendente";
+                this.SalvarAnalisePed(analisePed);
+            }
+        }
+
         internal bool VerificarAnalisePedFinalizada(int propostaId)
         {
             return _context.AnalisePed.Any(x => x.PropostaId == propostaId && x.Status == "Enviada");

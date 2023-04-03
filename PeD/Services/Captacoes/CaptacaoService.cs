@@ -41,7 +41,7 @@ namespace PeD.Services.Captacoes
                             (c.Status == Captacao.CaptacaoStatus.Fornecedor && c.Termino <= maxDate || c.Status >= Captacao.CaptacaoStatus.Encerrada) &&
                             (c.Propostas.Count == 0 || c.Propostas.All(p => !p.Finalizado || !p.Contrato.Finalizado))
                         );
-                        
+
         };
 
         private Func<IQueryable<Captacao>, IQueryable<Captacao>> _queryEncerradas = q =>
@@ -265,7 +265,7 @@ namespace PeD.Services.Captacoes
             #region Fornecedores
 
             var fornecedores = fornecedoresIds.Select(fid => new CaptacaoFornecedor
-                { CaptacaoId = id, FornecedorId = fid });
+            { CaptacaoId = id, FornecedorId = fid });
 
             var captacaoFornecedors = _captacaoFornecedors.Where(f => f.CaptacaoId == id).ToList();
             _captacaoFornecedors.RemoveRange(captacaoFornecedors);
@@ -447,7 +447,7 @@ namespace PeD.Services.Captacoes
 
         public void EncerrarCaptacoesExpiradas()
         {
-           
+
             var expiradas = Filter(q =>
                     q.Include(c => c.Propostas)
                         .ThenInclude(p => p.Contrato)
@@ -468,7 +468,7 @@ namespace PeD.Services.Captacoes
                 // Notificando analistas responsáveis
                 _demandaService.NotificarAnalistaPed(expirada.Demanda, true);
                 _demandaService.NotificarAnalistaTecnico(expirada.Demanda, true);
-                
+
             }
 
             Put(expiradas);
@@ -710,17 +710,27 @@ namespace PeD.Services.Captacoes
 
         public string VerificarRelatorioDiretoria(int captacaoId)
         {
-            
+
             var captacao = _context.Set<Captacao>().Find(captacaoId);
             var status = _context.Set<PropostaRelatorioDiretoria>()
-                .Any(x => x.PropostaId == captacao.PropostaSelecionadaId && x.Finalizado) 
+                .Any(x => x.PropostaId == captacao.PropostaSelecionadaId && x.Finalizado)
                 ? "Finalizado"
                 : "Rascunho";
-                            
+
+            return status;
+        }
+        public string VerificarNotaTecnica(int captacaoId)
+        {
+
+            var captacao = _context.Set<Captacao>().Find(captacaoId);
+            var status = _context.Set<PropostaNotaTecnica>()
+                .Any(x => x.PropostaId == captacao.PropostaSelecionadaId && x.Finalizado)
+                ? "Finalizado"
+                : "Rascunho";
+
             return status;
         }
 
 
-        
     }
 }

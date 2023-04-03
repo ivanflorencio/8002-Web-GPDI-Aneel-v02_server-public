@@ -26,6 +26,7 @@ namespace PeD.Services.Captacoes
         private DbSet<Proposta> _captacaoPropostas;
         private DbSet<Captacao> _captacao;
         private DbSet<PropostaRelatorioDiretoria> _propostaRelatorioDiretoria;
+        private DbSet<PropostaNotaTecnica> _propostaNotaTecnica;
         private DbSet<RecursoHumano> _recursoHumano;
         private DbSet<RecursoMaterial> _recursoMaterial;
         private DbSet<Risco> _risco;
@@ -60,6 +61,7 @@ namespace PeD.Services.Captacoes
             _captacaoPropostas = context.Set<Proposta>();
             _captacao = context.Set<Captacao>();
             _propostaRelatorioDiretoria = context.Set<PropostaRelatorioDiretoria>();
+            _propostaNotaTecnica = context.Set<PropostaNotaTecnica>();
             _recursoHumano = context.Set<RecursoHumano>();
             _recursoMaterial = context.Set<RecursoMaterial>();
             _risco = context.Set<Risco>();
@@ -257,6 +259,48 @@ namespace PeD.Services.Captacoes
             context.SaveChanges();
         }
 
+        public void SalvarNotaTecnica(int relatorioId, string conteudo, bool isDraft)
+        {
+            var relatorioProposta = _propostaNotaTecnica
+                                        .Include(x => x.Proposta)
+                                        .Where(x => x.Id == relatorioId)
+                                        .FirstOrDefault();
+
+            var hash = relatorioProposta.Conteudo?.ToSHA256() ?? "";
+            var hasChanges = !hash.Equals(conteudo.ToSHA256());
+
+            relatorioProposta.Finalizado = relatorioProposta.Finalizado || !isDraft;
+            relatorioProposta.Conteudo = conteudo;
+
+            if (!isDraft && (hasChanges || relatorioProposta.FileId == null))
+            {
+                var file = SaveNotaTecnicaPdf(relatorioProposta);
+                relatorioProposta.File = file;
+                relatorioProposta.FileId = file.Id;
+            }
+
+            context.Update(relatorioProposta);
+            context.SaveChanges();
+        }
+
+        public PropostaNotaTecnica GetNotaTecnica(int captacaoId)
+        {
+            var proposta = GetNotaTecnicaPorCaptacao(captacaoId);
+
+            if (proposta == null)
+            {
+                var captacao = _captacao
+                                    .Include(c => c.RelatorioDiretoria)
+                                    .Where(c => c.Id == captacaoId)
+                                    .FirstOrDefault();
+                CriarNotaTecnica(captacao);
+                proposta = GetNotaTecnicaPorCaptacao(captacaoId);
+            }
+
+            return proposta;
+
+        }
+
         public PropostaRelatorioDiretoria GetRelatorioDiretoria(int captacaoId)
         {
             var proposta = GetRelatorioDiretoriaPorCaptacao(captacaoId);
@@ -288,9 +332,35 @@ namespace PeD.Services.Captacoes
             context.SaveChanges();
         }
 
+        public void CriarNotaTecnica(Captacao captacao)
+        {
+            context.Add(new PropostaNotaTecnica
+            {
+                ParentId = captacao.RelatorioDiretoriaId.Value,
+                PropostaId = captacao.PropostaSelecionadaId.Value,
+                Conteudo = "\n<!-- HEADER -->\n" + captacao.RelatorioDiretoria.Header +
+                                "\n<!-- CONTEUDO -->\n" + captacao.RelatorioDiretoria.Conteudo +
+                                "\n<!-- FOOTER -->\n" + captacao.RelatorioDiretoria.Footer
+            });
+            context.SaveChanges();
+        }
+
         public PropostaRelatorioDiretoria GetRelatorioDiretoriaPorCaptacao(int captacaoId)
         {
             return _propostaRelatorioDiretoria
+                .Include(p => p.Proposta)
+                .ThenInclude(p => p.Captacao)
+                .Include(p => p.Parent)
+                .Include(p => p.Proposta)
+                .ThenInclude(p => p.Fornecedor)
+                .Include(p => p.File)
+                .Where(x => x.Proposta.Captacao.Id == captacaoId)
+                .FirstOrDefault();
+        }
+
+        public PropostaNotaTecnica GetNotaTecnicaPorCaptacao(int captacaoId)
+        {
+            return _propostaNotaTecnica
                 .Include(p => p.Proposta)
                 .ThenInclude(p => p.Captacao)
                 .Include(p => p.Parent)
@@ -370,7 +440,15 @@ namespace PeD.Services.Captacoes
             relatorioDto.Conteudo = RelatorioDiretoriaService.ReplaceShortcodes(relatorio.Conteudo, propostaFull);
             return renderService.RenderToStringAsync("Proposta/RelatorioDiretoria", relatorioDto).Result;
         }
-
+        public string PrintNotaTecnica(int propostaId)
+        {
+            var propostaFull = GetPropostaFull(propostaId);
+            var relatorio = GetNotaTecnica(propostaFull.CaptacaoId);
+            var relatorioDto = _mapper.Map<PropostaNotaTecnicaDto>(relatorio);
+            relatorioDto.Titulo = "NOTA TÉCNICA";
+            relatorioDto.Conteudo = RelatorioDiretoriaService.ReplaceShortcodes(relatorio.Conteudo, propostaFull);
+            return renderService.RenderToStringAsync("Proposta/NotaTecnica", relatorioDto).Result;
+        }
         public List<PropostaContratoRevisao> GetContratoRevisoes(int propostaId)
         {
             return context.Set<PropostaContratoRevisao>()
@@ -577,6 +655,19 @@ namespace PeD.Services.Captacoes
             return null;
         }
 
+        public FileUpload SaveNotaTecnicaPdf(PropostaNotaTecnica relatorio)
+        {
+            var relatorioContent = PrintNotaTecnica(relatorio.PropostaId);
+            if (relatorioContent != null)
+            {
+                var arquivo = _pdfService.HtmlToPdf(relatorioContent, $"nota-tecnica-{relatorio.PropostaId}");
+                PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
+                return arquivo;
+            }
+
+            return null;
+        }
+
         public FileUpload GetContratoPdf(int propostaId)
         {
             var contrato = GetContrato(propostaId);
@@ -608,6 +699,25 @@ namespace PeD.Services.Captacoes
             if (relatorioContent != null)
             {
                 var arquivo = _pdfService.HtmlToPdf(relatorioContent, $"relatorio-{relatorio.PropostaId}");
+                PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
+                return arquivo;
+            }
+
+            return null;
+        }
+
+        public FileUpload GetNotaTecnicaPdf(int captacaoId)
+        {
+            var relatorio = GetNotaTecnica(captacaoId);
+            if (relatorio?.File != null)
+            {
+                return relatorio.File;
+            }
+
+            var relatorioContent = PrintNotaTecnica(relatorio.PropostaId);
+            if (relatorioContent != null)
+            {
+                var arquivo = _pdfService.HtmlToPdf(relatorioContent, $"nota-tecnica-{relatorio.PropostaId}");
                 PdfService.AddPagesToPdf(arquivo.Path, 475, 90);
                 return arquivo;
             }

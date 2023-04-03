@@ -7,5 +7,6 @@ namespace PeD.Core.ApiModels.Cronograma
         public InicioCronogramaDto Inicio { get; set; }
         public List<EtapaCronogramaDto> Etapas { get; set; }
         public List<EmpresaCronogramaDto> Empresas { get; set; }
+        public List<double> Contrapartidas { get; set; }
     }
 }

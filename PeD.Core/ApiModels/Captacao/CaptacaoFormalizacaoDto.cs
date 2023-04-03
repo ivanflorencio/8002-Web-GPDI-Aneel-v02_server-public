@@ -9,6 +9,7 @@ namespace PeD.Core.ApiModels.Captacao
         public string ExecucaoResponsavel { get; set; }
         public string AprovacaoResponsavel { get; set; }
         public string StatusRelatorioDiretoria { get; set; } = "Rascunho";
+        public string StatusNotaTecnica { get; set; } = "Rascunho";
         public string Filename { get; set; }
     }
 }

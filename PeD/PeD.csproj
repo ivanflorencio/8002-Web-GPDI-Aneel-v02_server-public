@@ -92,11 +92,18 @@
         <Content Remove="logs\**" />
         <Content Update="appsettings.example.json">
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </Content>
         <Content Update="appsettings.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>  
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>          
+        </Content>
+         <Content Update="appsettings.production.json">
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>       
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>     
         </Content>
         <Content Update="wwwroot\**">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

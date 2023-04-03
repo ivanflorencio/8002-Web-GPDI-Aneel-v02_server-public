@@ -1,22 +1,22 @@
 ﻿
+using System;
+using System.Net.Mail;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PeD.Core;
 using PeD.Views.Email;
 using SendGrid.Helpers.Mail;
-using System;
-using System.Net.Mail;
-using System.Threading.Tasks;
 
 namespace PeD.Services
 {
-    public class MailService 
+    public class MailService
     {
         private readonly EmailSettings EmailSettings;
         protected IViewRenderService ViewRender;
         protected ILogger<SendGridService> Logger;
         protected EmailAddress From;
         protected EmailSettings Settings;
-        
+
         public MailService(IViewRenderService viewRender, EmailSettings settings)
         {
             EmailSettings = settings;
@@ -26,7 +26,7 @@ namespace PeD.Services
         public async Task<bool> Send(string to, string subject, string content, string title = null,
             string actionLabel = null, string actionUrl = null)
         {
-            return await Send(new[] {to}, subject, content, title, actionLabel, actionUrl);
+            return await Send(new[] { to }, subject, content, title, actionLabel, actionUrl);
         }
 
         public async Task<bool> Send(string[] tosEmail, string subject, string content, string title = null,
@@ -35,7 +35,7 @@ namespace PeD.Services
             title ??= subject;
             return await Send(tosEmail, subject, "Email/SimpleMail",
                 new SimpleMail()
-                    {Titulo = title, Conteudo = content, ActionLabel = actionLabel, ActionUrl = actionUrl});
+                { Titulo = title, Conteudo = content, ActionLabel = actionLabel, ActionUrl = actionUrl });
         }
 
         public async Task<bool> Send<T>(string[] tosEmail, string subject, string viewName, T model)
@@ -50,8 +50,9 @@ namespace PeD.Services
                 if (!string.IsNullOrEmpty(to))
                     message.To.Add(new MailAddress(to));
             }
-            if (message.To.Count > 0) {
-                
+            if (message.To.Count > 0)
+            {
+
                 message.Subject = subject;
 
                 var viewContent = await ViewRender.RenderToStringAsync(viewName, model);
@@ -59,25 +60,31 @@ namespace PeD.Services
                 message.IsBodyHtml = true;
                 message.Body = viewContent;
                 smtp.Port = EmailSettings.Port;
-                smtp.Host = EmailSettings.Host;            
+                smtp.Host = EmailSettings.Host;
                 smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-                try { 
+                try
+                {
+#if !DEBUG
                     await smtp.SendMailAsync(message);
+#endif
                     return true;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Logger.LogError("Erro no disparo de email: {Error}.", e.Message);
                     Logger.LogError("StackError: {Error}", e.StackTrace);
                     return false;
                 }
-            } else {
+            }
+            else
+            {
                 return false;
             }
         }
 
         public async Task<bool> Send<T>(string toEmail, string subject, string viewName, T model) where T : class
         {
-            return await Send(new[] {toEmail}, subject, viewName, model);
+            return await Send(new[] { toEmail }, subject, viewName, model);
         }
     }
 }

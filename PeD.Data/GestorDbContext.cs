@@ -127,6 +127,7 @@ namespace PeD.Data
             builder.Entity<Contrato>().ToTable("Contratos");
             builder.Entity<RelatorioDiretoria>().ToTable("RelatoriosDiretoria");
             builder.Entity<PropostaRelatorioDiretoria>().ToTable("PropostaRelatoriosDiretoria");
+            builder.Entity<PropostaNotaTecnica>().ToTable("PropostaNotaTecnica");
             builder.Entity<Clausula>().ToTable("Clausulas");
             builder.Entity<FaseTipoDetalhado>().Config();
             builder.Entity<ItemAjuda>().Config();

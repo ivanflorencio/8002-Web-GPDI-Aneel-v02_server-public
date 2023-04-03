@@ -616,6 +616,7 @@ namespace PeD.Controllers.Captacoes
             foreach (var item in mapped)
             {
                 item.StatusRelatorioDiretoria = Service.VerificarRelatorioDiretoria(item.Id);
+                item.StatusNotaTecnica = Service.VerificarNotaTecnica(item.Id);
             }
             return Ok(mapped);
         }

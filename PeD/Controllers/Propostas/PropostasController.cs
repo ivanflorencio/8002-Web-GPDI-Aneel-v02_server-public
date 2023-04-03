@@ -17,6 +17,7 @@ using PeD.Core.Models.Propostas;
 using PeD.Core.Requests.Proposta;
 using PeD.Data;
 using PeD.Services;
+using PeD.Services.Analises;
 using PeD.Services.Captacoes;
 using PeD.Services.Cronograma;
 using Swashbuckle.AspNetCore.Annotations;
@@ -35,16 +36,18 @@ namespace PeD.Controllers.Propostas
         private new PropostaService Service;
         private CronogramaService ServiceCronograma;
         private CronogramaProjetoService ServiceCronogramaProjeto;
+        private AnalisePedService AnalisePedService;
         private GestorDbContext _context;
         public readonly IAuthorizationService AuthorizationService;
 
-        public PropostasController(PropostaService service, CronogramaService serviceCronograma, IMapper mapper, IAuthorizationService authorizationService,
+        public PropostasController(PropostaService service, CronogramaService serviceCronograma, AnalisePedService analisePedService, IMapper mapper, IAuthorizationService authorizationService,
             GestorDbContext context, CronogramaProjetoService serviceCronogramaProjeto)
             : base(service, mapper)
         {
             Service = service;
             ServiceCronograma = serviceCronograma;
             ServiceCronogramaProjeto = serviceCronogramaProjeto;
+            AnalisePedService = analisePedService;
             AuthorizationService = authorizationService;
             _context = context;
         }
@@ -459,5 +462,24 @@ namespace PeD.Controllers.Propostas
             await Service.SendEmailRefinamentoCancelado(proposta);
             return Ok();
         }
+
+        [Authorize(Policy = Policies.IsUserPeD)]
+        [HttpPost("{guid:guid}/SolicitarReanalise")]
+        public async Task<ActionResult> SolicitarReanalise(Guid guid)
+        {
+            var proposta = Service.GetProposta(guid);
+            if (!await HasAccess(proposta) || proposta.Captacao.Status != Captacao.CaptacaoStatus.Refinamento)
+                return Forbid();
+
+            AnalisePedService.SolicitarReanaliseProposta(proposta.Id);
+
+            proposta.Participacao = StatusParticipacao.Aceito;
+            proposta.Finalizado = false;
+            Service.Put(proposta);
+
+            return Ok();
+        }
+
+
     }
 }
