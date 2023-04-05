@@ -64,9 +64,7 @@ namespace PeD.Services
                 smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
                 try
                 {
-#if !DEBUG
                     await smtp.SendMailAsync(message);
-#endif
                     return true;
                 }
                 catch (Exception e)

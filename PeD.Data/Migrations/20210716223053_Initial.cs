@@ -2260,10 +2260,10 @@ namespace PeD.Data.Migrations
                 columns: new[] { "Id", "Ativo", "Categoria", "Cnpj", "Discriminator", "Nome", "UF", "Valor" },
                 values: new object[,]
                 {
+                    { 1, true, 1, "12.300.288/0001-07", "Empresa", "NORTE ENERGIA", null, "07427" },
                     { 20, true, 1, "26.712.591/0001-13", "Empresa", "PARAGUAÇÚ", null, "11104" },
                     { 19, true, 1, "26.707.830/0001-47", "Empresa", "AIMORÉS", null, "11105" },
                     { 18, true, 1, "26.617.923/0001-80", "Empresa", "JANAÚBA", null, "11114" },
-                    { 1, true, 1, "07.859.971/0001-30", "Empresa", "TAESA", null, "07130" },
                     { 17, true, 1, "24.944.194/0001-41", "Empresa", "MIRACEMA", null, "10731" },
                     { 2, true, 1, "07.859.971/0001-30", "Empresa", "ATE", null, "04906" },
                     { 3, true, 1, "07.859.971/0001-30", "Empresa", "ATE II", null, "05012" },

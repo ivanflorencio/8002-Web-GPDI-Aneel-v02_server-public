@@ -19,8 +19,8 @@
 
 @section Action
 {
-    <a href="@url/nova-senha/?email=@Model.Email&token=@Model.Token.ToBase64()">
-        <img src="@url/Assets/gerar-senha.png" alt="Gerar Senha">
+    <a href="@url/nova-senha/?email=@Model.Email&token=@Model.Token.ToBase64()" style="display: inline-block; background: linear-gradient(0deg,#07626a,#007984); color:#d3f1ee; border-radius: 10px; font-size: 22px; padding: 10px 32px; text-decoration: none; text-transform: uppercase;">
+        Gerar Senha
     </a>
 }
 
@@ -29,7 +29,7 @@
     Alguém solicitou que a senha fosse redefinida para a seguinte conta:
 </p>
 <p>
-    <span style="color: #042769">
+    <span style="color: #007984">
         Usuário:
         @Model.Email
     </span>
